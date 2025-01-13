@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /* Общие стили */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+/* Заголовок страницы */
+h1 {
+    text-align: center;
+    margin: 20px 0;
+    color: #007BFF; /* Синий акцентный цвет */
+}
+
+/* Общий контейнер */
+div {
+    margin: 20px auto;
+    max-width: 600px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Подзаголовки */
+h3 {
+    margin: 10px 0;
+    color: #444;
+}
+
+/* Текстовая область */
+textarea {
+    width: calc(100% - 20px);
+    height: 100px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    resize: none;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s;
+}
+
+textarea:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+/* Кнопка отправки */
+button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Сообщения */
+span {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Стиль сообщения на доске */
+div:nth-child(3) span {
+    font-style: normal;
+    font-size: 16px;
+    color: #000;
+    padding: 15px;
+    background: #e7f1ff; /* Нежно-синий фон */
+    border: 1px solid #007BFF; /* Синий акцентный цвет */
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    word-wrap: break-word;
+}
+
+/* Дополнительный стиль для сообщения от другого пользователя */
+div:nth-child(3) h3 {
+    color: #0056b3; /* Темно-синий для акцента */
+}
+    </style>
+</head>
+<body>
+    <h1>Message board</h1>
+    <div class="container" >
+        <h3>You</h3>
+        <span><textarea id="messageInput" placeholder="Write message"></textarea></span>
+        <button id="runScript">Submit</button>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+    const messageInput = document.getElementById('messageInput');
+    const submitButton = document.getElementById('runScript');
+    const messageBoard = document.querySelector('.message-board');
+
+    submitButton.addEventListener('click', () => {
+        fetch('/run-script', {
+            method: 'POST'
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            } else {
+                throw new Error('Failed to execute script.');
+            }
+        })
+        .then(result => {
+            // Получаем текст сообщения из textarea
+            const messageText = messageInput.value.trim();
+            if (messageText === "") {
+                alert("Message cannot be empty!");
+                return;
+            }
+
+            // Создаем новый блок сообщения с подписью "You"
+            const messageBlock = document.createElement('div');
+            messageBlock.classList.add('message');
+            messageBlock.innerHTML = `<strong>You:</strong> ${messageText}`;
+
+            // Добавляем сообщение в messageBoard
+            if (messageBoard) {
+                messageBoard.appendChild(messageBlock);
+            } else {
+                console.error('Message board not found.');
+            }
+
+            messageInput.value = "";
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
+    });
+});
+        </script>
+    </div>
+    <div class="container message-board">
+        <h3>User</h3>
+        <span>This some important message</span>
+    </div>
+    
+</body>
+</html>

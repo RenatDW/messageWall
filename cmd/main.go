@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,8 +22,26 @@ type Post struct {
 	Text    string
 }
 
+func getPosts(w http.ResponseWriter, req *http.Request) {
+	dsn := "host=localhost user=postgres password=1234 dbname=go_fp port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Println("error with data base connection")
+	}
+
+	var posts []Post
+
+	result := db.Find(&posts)
+	if result != nil {
+		log.Printf("Failed to fetch posts: %v", result.Error)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(posts)
+
+}
 func runScriptHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Print("Кнопка нажата")
 	dsn := "host=localhost user=postgres password=1234 dbname=go_fp port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	// dsn := "host=localhost user=postgres password=1234 dbname=posts port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -51,6 +70,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./web"))
 	http.Handle("/", fs)
 	http.HandleFunc("/run-script", runScriptHandler)
+	http.HandleFunc("/api/posts", getPosts)
 
 	fmt.Println("Server is running on http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)

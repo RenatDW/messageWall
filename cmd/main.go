@@ -13,6 +13,7 @@ import (
 type User struct {
 	ID       uint   `gorm:"primaryKey"`
 	Name     string `gorm:"unique"`
+	Email    string `gorm:"unique"`
 	Password string
 }
 
@@ -25,6 +26,17 @@ type Post struct {
 type requestBody struct {
 	UserID int    `json:"user_id"`
 	Text   string `json:"text"`
+}
+
+type requestUser struct {
+	Login    string `json:"login"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type requestUserLogin struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
 
 var upgrader = websocket.Upgrader{}
@@ -101,12 +113,67 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// todo переделать
+func loginUser(w http.ResponseWriter, req *http.Request) {
+	requestUserLogin := requestUserLogin{}
+	json.NewDecoder(req.Body).Decode(&requestUserLogin)
+	var user User
+	db := connectDB()
+	db.Where("name = ?", requestUserLogin.Login).First(&user)
+	if user.Password == requestUserLogin.Password {
+		w.WriteHeader(http.StatusAccepted)
+	}
+}
+
+func signUpUser(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Decode the incoming JSON payload
+	var requestUser requestUser
+	err := json.NewDecoder(req.Body).Decode(&requestUser)
+	if err != nil {
+		log.Print("Error decoding JSON:", err)
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	// Validate the incoming data (e.g., check for empty fields)
+	if requestUser.Login == "" || requestUser.Email == "" || requestUser.Password == "" {
+		http.Error(w, "All fields are required", http.StatusBadRequest)
+		return
+	}
+
+	// Create a new user object
+	user := User{Name: requestUser.Login, Email: requestUser.Email, Password: requestUser.Password}
+
+	// Connect to the database
+	db := connectDB()
+
+	// Save the user to the database
+	result := db.Create(&user)
+	if result.Error != nil {
+		log.Print("Error creating user:", result.Error)
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	// Send a success response
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "User signed up successfully"})
+}
+
 func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("./web")))
+	http.HandleFunc("/signup", signUpUser)
+
 	http.HandleFunc("/run-script", runScriptHandler)
 	http.HandleFunc("/ws", webSocketHandler)
 	http.HandleFunc("/api/posts", getPosts)
+	http.HandleFunc("/login", loginUser)
 
 	log.Println("Server is running on http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)

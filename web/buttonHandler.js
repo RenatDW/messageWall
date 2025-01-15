@@ -8,14 +8,10 @@ socket.onmessage = function(event) {
     message.textContent = `Server: ${event.data}`;
     messageBoard.appendChild(message);
 };
-ç
-document.addEventListener('DOMContentLoaded', () => {
-    const messageInput = document.getElementById('messageInput');
-    const submitButton = document.getElementById('runScript');
-    const messageBoard = document.querySelector('.message-board');
 
-    submitButton.addEventListener('click', () =>{
-        const messageText = messageInput.value.trim();
+function addPost(){
+    const messageBoard = document.querySelector('.message-board');
+    const messageText = messageInput.value.trim();
         if (messageText === "") {
             alert("Message cannot be empty!");
                 return;
@@ -51,18 +47,39 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => {
                 alert('Error: ' + error.message);
             });
-    });
+}
 
+
+function loadPosts() {
+    const messageBoard = document.querySelector('.message-board');
     fetch('/api/posts')
-    .then(response => response.json())
-    .then(data => {
-        const postsContainer = document.getElementById('posts');
-        data.forEach(post => {
-            const postDiv = document.createElement('div');
-            postDiv.classList.add('message')
-            postDiv.innerHTML = `<strong>You:</strong> ${post.Text}`;
-            messageBoard.appendChild(postDiv);
-        });
-    })
-    .catch(error => console.error('Error fetching posts:', error));
+        .then(response => response.json())
+        .then(data => {
+            const postsContainer = document.getElementById('posts');
+            data.forEach(post => {
+                const postDiv = document.createElement('div');
+                postDiv.classList.add('message');
+                postDiv.innerHTML = `<strong>You:</strong> ${post.Text}`;
+                messageBoard.appendChild(postDiv);
+            });
+        })
+        .catch(error => console.error('Error fetching posts:', error));
+}
+
+function login(){
+
+}
+
+function signup(){
+
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    document.getElementById('runScript').addEventListener('click' ,addPost);
+    
+    document.getElementById('signupButton').addEventListener('click', login);
+    document.getElementById('loginButton').addEventListener('click', signup);
+    loadPosts();
 });

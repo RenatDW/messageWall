@@ -13,12 +13,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// Webhook payload
 type WebhookPayload struct {
 	ID     uint   `json:"id"`
 	UserID int    `json:"user_id"`
 	Text   string `json:"text"`
-	Action string `json:"action"` // e.g., "insert", "update", "delete"
+	Action string `json:"action"`
 }
 
 type User struct {
@@ -115,7 +114,6 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// todo переделать
 func loginUser(w http.ResponseWriter, req *http.Request) {
 	requestUserLogin := requestUserLogin{}
 	json.NewDecoder(req.Body).Decode(&requestUserLogin)
@@ -145,8 +143,6 @@ func signUpUser(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-
-	// Decode the incoming JSON payload
 	var requestUser requestUser
 	err := json.NewDecoder(req.Body).Decode(&requestUser)
 	if err != nil {
@@ -155,19 +151,14 @@ func signUpUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Validate the incoming data (e.g., check for empty fields)
 	if requestUser.Login == "" || requestUser.Email == "" || requestUser.Password == "" {
 		http.Error(w, "All fields are required", http.StatusBadRequest)
 		return
 	}
 
-	// Create a new user object
 	user := User{Name: requestUser.Login, Email: requestUser.Email, Password: requestUser.Password}
-
-	// Connect to the database
 	db := connectDB()
 
-	// Save the user to the database
 	result := db.Create(&user)
 	if result.Error != nil {
 		log.Print("Error creating user:", result.Error)
@@ -175,13 +166,11 @@ func signUpUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Send a success response
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "User signed up successfully"})
 }
 
 func main() {
-
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 	http.HandleFunc("/signup", signUpUser)
 
@@ -197,32 +186,6 @@ func main() {
 	if err != nil {
 		log.Printf("Error starting server: %v\n", err)
 	}
-}
-
-// Dispatch webhook to an external service
-func dispatchWebhook(payload WebhookPayload) {
-	webhookURL := "ws://localhost:8080/ws" // Correct WebSocket URL
-	body, err := json.Marshal(payload)
-	if err != nil {
-		log.Printf("Failed to encode webhook payload: %v", err)
-		return
-	}
-
-	// Open WebSocket connection
-	conn, _, err := websocket.DefaultDialer.Dial(webhookURL, nil)
-	if err != nil {
-		log.Printf("Failed to connect to WebSocket: %v", err)
-		return
-	}
-	defer conn.Close()
-
-	err = conn.WriteMessage(websocket.TextMessage, body)
-	if err != nil {
-		log.Printf("Failed to send WebSocket message: %v", err)
-		return
-	}
-
-	log.Println("Webhook message sent successfully")
 }
 
 func webSocketHandler(w http.ResponseWriter, req *http.Request) {

@@ -5,11 +5,21 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+// Webhook payload
+type WebhookPayload struct {
+	ID     uint   `json:"id"`
+	UserID int    `json:"user_id"`
+	Text   string `json:"text"`
+	Action string `json:"action"` // e.g., "insert", "update", "delete"
+}
 
 type User struct {
 	ID       uint   `gorm:"primaryKey"`
@@ -41,28 +51,19 @@ type requestUserLogin struct {
 }
 
 var upgrader = websocket.Upgrader{}
+var clients = make(map[*websocket.Conn]bool)
 
-func webSocketHandler(w http.ResponseWriter, req *http.Request) {
-	c, err := upgrader.Upgrade(w, req, nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
-	}
-	defer c.Close()
-	for {
-		mt, message, err := c.ReadMessage()
+func notifyClients(message string) {
+	for client := range clients {
+		err := client.WriteMessage(websocket.TextMessage, []byte(message))
 		if err != nil {
-			log.Println("read:", err)
-			break
-		}
-		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
-		if err != nil {
-			log.Println("write:", err)
-			break
+			log.Println("Error sending message:", err)
+			client.Close()
+			delete(clients, client)
 		}
 	}
 }
+
 func fetchPosts(db gorm.DB) []Post {
 	var posts []Post
 	db.Find(&posts)
@@ -188,11 +189,187 @@ func main() {
 	http.HandleFunc("/ws", webSocketHandler)
 	http.HandleFunc("/api/posts", getPosts)
 	http.HandleFunc("/login", loginUser)
-
 	log.Println("Server is running on http://localhost:8080")
+
+	go startWebhookListener()
+
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Printf("Error starting server: %v\n", err)
 	}
+}
 
+// Listen for PostgreSQL notifications
+// func startWebhookListener() {
+// 	db := connectDB()
+// 	sqlDB, err := db.DB()
+// 	if err != nil {
+// 		log.Fatalf("Failed to get sql.DB: %v", err)
+// 	}
+// 	defer sqlDB.Close()
+// 	dsn := "host=localhost user=postgres password=1234 dbname=go_fp port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+// 	// Listen for PostgreSQL NOTIFY messages
+// 	listener := pq.NewListener(dsn, 10*time.Second, time.Minute, func(event pq.ListenerEventType, err error) {
+// 		if err != nil {
+// 			log.Fatalf("Listener error: %v", err)
+// 		}
+// 	})
+// 	defer listener.Close()
+
+// 	err = listener.Listen("data_update")
+// 	if err != nil {
+// 		log.Fatalf("Failed to listen on 'data_update': %v", err)
+// 	}
+
+// 	log.Println("Listening for data_update notifications...")
+
+// 	for {
+// 		select {
+// 		case notification := <-listener.Notify:
+// 			if notification != nil {
+// 				log.Printf("Received notification: %s", notification.Extra)
+
+// 				// Parse the notification and dispatch webhook
+// 				var payload WebhookPayload
+// 				err := json.Unmarshal([]byte(notification.Extra), &payload)
+// 				if err != nil {
+// 					log.Printf("Error parsing notification: %v", err)
+// 					continue
+// 				}
+
+// 				go dispatchWebhook(payload)
+// 			}
+// 		case <-time.After(90 * time.Second):
+// 			log.Println("No notifications received for 90 seconds, pinging PostgreSQL")
+// 			go listener.Ping()
+// 		}
+// 	}
+// }
+
+// Dispatch webhook to an external service
+func dispatchWebhook(payload WebhookPayload) {
+	webhookURL := "ws://localhost:8080/ws" // Correct WebSocket URL
+	body, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Failed to encode webhook payload: %v", err)
+		return
+	}
+
+	// Open WebSocket connection
+	conn, _, err := websocket.DefaultDialer.Dial(webhookURL, nil)
+	if err != nil {
+		log.Printf("Failed to connect to WebSocket: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	err = conn.WriteMessage(websocket.TextMessage, body)
+	if err != nil {
+		log.Printf("Failed to send WebSocket message: %v", err)
+		return
+	}
+
+	log.Println("Webhook message sent successfully")
+}
+
+// func webSocketHandler(w http.ResponseWriter, req *http.Request) {
+// 	c, err := upgrader.Upgrade(w, req, nil)
+// 	if err != nil {
+// 		log.Print("upgrade:", err)
+// 		return
+// 	}
+// 	defer c.Close()
+// 	clients[c] = true
+
+// 	for {
+// 		msgType, message, err := c.ReadMessage()
+// 		// log.Println(msgType, message)
+// 		if err != nil {
+// 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+// 				log.Println("Error reading message:", err)
+// 			}
+// 			delete(clients, c)
+// 			break
+// 		}
+// 		err = c.WriteMessage(msgType, message)
+// 		// log.Println(msgType, message)
+
+// 		if err != nil {
+// 			log.Println("Error writing message:", err)
+// 			break
+// 		}
+// 	}
+// }
+
+func webSocketHandler(w http.ResponseWriter, req *http.Request) {
+	c, err := upgrader.Upgrade(w, req, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+	defer c.Close()
+	clients[c] = true
+
+	for {
+		_, _, err := c.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Println("Error reading message:", err)
+			}
+			delete(clients, c)
+			break
+		}
+	}
+}
+
+func startWebhookListener() {
+	db := connectDB()
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed to get sql.DB: %v", err)
+	}
+	defer sqlDB.Close()
+
+	listener := pq.NewListener(
+		"host=localhost user=postgres password=1234 dbname=go_fp port=5432 sslmode=disable TimeZone=Asia/Shanghai",
+		10*time.Second,
+		time.Minute,
+		func(event pq.ListenerEventType, err error) {
+			if err != nil {
+				log.Fatalf("Listener error: %v", err)
+			}
+		},
+	)
+	defer listener.Close()
+
+	err = listener.Listen("data_update")
+	if err != nil {
+		log.Fatalf("Failed to listen on 'data_update': %v", err)
+	}
+
+	log.Println("Listening for data_update notifications...")
+
+	for {
+		select {
+		case notification := <-listener.Notify:
+			if notification != nil {
+				log.Printf("Received notification: %s", notification.Extra)
+
+				var payload WebhookPayload
+				err := json.Unmarshal([]byte(notification.Extra), &payload)
+				if err != nil {
+					log.Printf("Error parsing notification: %v", err)
+					continue
+				}
+
+				for client, _ := range clients {
+					ans, _ := json.Marshal(payload)
+					client.WriteMessage(1, ans)
+				}
+			}
+		case <-time.After(90 * time.Second):
+			log.Println("No notifications received for 90 seconds, pinging PostgreSQL")
+			go listener.Ping()
+		}
+	}
 }

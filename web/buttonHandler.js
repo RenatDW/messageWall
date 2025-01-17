@@ -76,8 +76,8 @@ function showLoginForm() {
                 <div id="formContainer">
                     <h2>Login</h2>
                     <form id="loginForm">
-                        <label for="loginEmail">Email</label>
-                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                        <label for="loginEmail">Email or login</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email or login" required>
                         <label for="loginPassword">Password</label>
                         <input type="password" id="loginPassword" placeholder="Enter your password" required>
                         <button type="submit" id="loginSubmit">Login</button>

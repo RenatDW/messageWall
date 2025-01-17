@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -119,10 +120,23 @@ func loginUser(w http.ResponseWriter, req *http.Request) {
 	json.NewDecoder(req.Body).Decode(&requestUserLogin)
 	var user User
 	db := connectDB()
-	db.Where("name = ?", requestUserLogin.Login).First(&user)
+	err := db.Where("name = ?", requestUserLogin.Login).Or("email = ?", requestUserLogin.Login).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			log.Printf("Database error: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+		return
+	}
 	if user.Password == requestUserLogin.Password {
 		w.WriteHeader(http.StatusAccepted)
+	} else {
+		http.Error(w, "Wrong pass", http.StatusBadGateway)
+		log.Print("Wrong pass")
 	}
+
 }
 
 func signUpUser(w http.ResponseWriter, req *http.Request) {

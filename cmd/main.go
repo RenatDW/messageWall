@@ -53,9 +53,9 @@ type requestUserLogin struct {
 var upgrader = websocket.Upgrader{}
 var clients = make(map[*websocket.Conn]bool)
 
-func notifyClients(message string) {
+func notifyClients(message WebhookPayload) {
 	for client := range clients {
-		err := client.WriteMessage(websocket.TextMessage, []byte(message))
+		err := client.WriteJSON(message)
 		if err != nil {
 			log.Println("Error sending message:", err)
 			client.Close()
@@ -199,53 +199,6 @@ func main() {
 	}
 }
 
-// Listen for PostgreSQL notifications
-// func startWebhookListener() {
-// 	db := connectDB()
-// 	sqlDB, err := db.DB()
-// 	if err != nil {
-// 		log.Fatalf("Failed to get sql.DB: %v", err)
-// 	}
-// 	defer sqlDB.Close()
-// 	dsn := "host=localhost user=postgres password=1234 dbname=go_fp port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-// 	// Listen for PostgreSQL NOTIFY messages
-// 	listener := pq.NewListener(dsn, 10*time.Second, time.Minute, func(event pq.ListenerEventType, err error) {
-// 		if err != nil {
-// 			log.Fatalf("Listener error: %v", err)
-// 		}
-// 	})
-// 	defer listener.Close()
-
-// 	err = listener.Listen("data_update")
-// 	if err != nil {
-// 		log.Fatalf("Failed to listen on 'data_update': %v", err)
-// 	}
-
-// 	log.Println("Listening for data_update notifications...")
-
-// 	for {
-// 		select {
-// 		case notification := <-listener.Notify:
-// 			if notification != nil {
-// 				log.Printf("Received notification: %s", notification.Extra)
-
-// 				// Parse the notification and dispatch webhook
-// 				var payload WebhookPayload
-// 				err := json.Unmarshal([]byte(notification.Extra), &payload)
-// 				if err != nil {
-// 					log.Printf("Error parsing notification: %v", err)
-// 					continue
-// 				}
-
-// 				go dispatchWebhook(payload)
-// 			}
-// 		case <-time.After(90 * time.Second):
-// 			log.Println("No notifications received for 90 seconds, pinging PostgreSQL")
-// 			go listener.Ping()
-// 		}
-// 	}
-// }
-
 // Dispatch webhook to an external service
 func dispatchWebhook(payload WebhookPayload) {
 	webhookURL := "ws://localhost:8080/ws" // Correct WebSocket URL
@@ -271,35 +224,6 @@ func dispatchWebhook(payload WebhookPayload) {
 
 	log.Println("Webhook message sent successfully")
 }
-
-// func webSocketHandler(w http.ResponseWriter, req *http.Request) {
-// 	c, err := upgrader.Upgrade(w, req, nil)
-// 	if err != nil {
-// 		log.Print("upgrade:", err)
-// 		return
-// 	}
-// 	defer c.Close()
-// 	clients[c] = true
-
-// 	for {
-// 		msgType, message, err := c.ReadMessage()
-// 		// log.Println(msgType, message)
-// 		if err != nil {
-// 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-// 				log.Println("Error reading message:", err)
-// 			}
-// 			delete(clients, c)
-// 			break
-// 		}
-// 		err = c.WriteMessage(msgType, message)
-// 		// log.Println(msgType, message)
-
-// 		if err != nil {
-// 			log.Println("Error writing message:", err)
-// 			break
-// 		}
-// 	}
-// }
 
 func webSocketHandler(w http.ResponseWriter, req *http.Request) {
 	c, err := upgrader.Upgrade(w, req, nil)
@@ -362,10 +286,8 @@ func startWebhookListener() {
 					continue
 				}
 
-				for client, _ := range clients {
-					ans, _ := json.Marshal(payload)
-					client.WriteMessage(1, ans)
-				}
+				notifyClients(payload)
+
 			}
 		case <-time.After(90 * time.Second):
 			log.Println("No notifications received for 90 seconds, pinging PostgreSQL")

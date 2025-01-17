@@ -3,10 +3,21 @@
 const socket = new WebSocket('ws://localhost:8080/ws');
 
 socket.onmessage = function(event) {
-    const messageBoard = document.querySelector('.message-board');
-    const message = document.createElement('div');
-    message.textContent = `Server: ${event.data}`;
-    messageBoard.appendChild(message);
+    try {
+        const messageBoard = document.querySelector('.message-board');
+        const messageBlock = document.createElement('div');
+        messageBlock.classList.add('message-others');
+        const parsedObject = JSON.parse(event.data);
+
+        messageBlock.innerHTML = `<strong>${parsedObject.user_id}</strong> : ${parsedObject.text}`;
+
+        if (messageBoard) {
+            messageBoard.appendChild(messageBlock);
+            socket.send(parsedObject)
+        }
+    } catch {
+        console.log("Failed to parse JSON");
+    }
 };
 
 function addPost(){

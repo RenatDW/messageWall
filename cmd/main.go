@@ -28,13 +28,14 @@ type User struct {
 }
 
 type Post struct {
-	ID      uint `gorm:"primaryKey"`
-	User_id int
-	Text    string
+	ID     uint `gorm:"primaryKey"`
+	UserID uint `gorm:"index"` // Foreign key with index for optimization
+	Text   string
+	User   User `gorm:"foreignKey:UserID"` // Establish relationship
 }
 
 type requestBody struct {
-	UserID int    `json:"user_id"`
+	UserID uint   `json:"user_id"`
 	Text   string `json:"text"`
 }
 
@@ -63,11 +64,6 @@ func notifyClients(message WebhookPayload) {
 	}
 }
 
-func fetchPosts(db gorm.DB) []Post {
-	var posts []Post
-	db.Find(&posts)
-	return posts
-}
 func runScriptHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		log.Println("Invalid request method", http.StatusMethodNotAllowed)
@@ -85,7 +81,7 @@ func runScriptHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Failed to migrate the database: %v", err)
 	}
-	post := Post{User_id: requestBody.UserID, Text: requestBody.Text}
+	post := Post{UserID: requestBody.UserID, Text: requestBody.Text}
 	result := db.Create(&post)
 
 	if result.Error != nil {
@@ -106,8 +102,11 @@ func connectDB() *gorm.DB {
 
 func getPosts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
+
 	db := connectDB()
-	posts := fetchPosts(*db)
+	var posts []Post
+	db.Preload("User").Find(&posts)
+
 	err := json.NewEncoder(w).Encode(posts)
 	if err != nil {
 		log.Println("Failed to encode json")
@@ -171,6 +170,7 @@ func signUpUser(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 	http.HandleFunc("/signup", signUpUser)
 

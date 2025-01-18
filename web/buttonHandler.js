@@ -69,7 +69,7 @@ function loadPosts() {
             data.forEach(post => {
                 const postDiv = document.createElement('div');
                 postDiv.classList.add('message');
-                postDiv.innerHTML = `<strong>You:</strong> ${post.Text}`;
+                postDiv.innerHTML = `<strong>${post.User.Name}:</strong> ${post.Text}`;
                 messageBoard.appendChild(postDiv);
             });
         })

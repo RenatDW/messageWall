@@ -1,6 +1,7 @@
 
 
 const socket = new WebSocket('ws://localhost:8080/ws');
+// document.cookie = "user=John";
 
 socket.onmessage = function(event) {
     try {
@@ -88,7 +89,7 @@ function showLoginForm() {
                     <h2>Login</h2>
                     <form id="loginForm">
                         <label for="loginEmail">Email or login</label>
-                        <input type="email" id="loginEmail" placeholder="Enter your email or login" required>
+                        <input type="text" id="loginEmail" placeholder="Enter your email or login" required>
                         <label for="loginPassword">Password</label>
                         <input type="password" id="loginPassword" placeholder="Enter your password" required>
                         <button type="submit" id="loginSubmit">Login</button>
@@ -107,7 +108,7 @@ function showLoginForm() {
         modalContainer.innerHTML = ''; // Clear the modal
     });
 
-    document.getElementById('loginSubmit').addEventListener('click', login );
+    document.getElementById('loginSubmit').addEventListener('click', (event) => login(event) );
     // Add event listener to switch to sign-up form
     document.getElementById('switchToSignUp').addEventListener('click', showSignUpForm);
 }
@@ -167,22 +168,39 @@ function showSignUpForm() {
     document.getElementById('switchToLogin').addEventListener('click', showLoginForm);
 }
 
-function login(){
-    const login = document.getElementById('loginEmail').value.trim;
+function login(event){
+    event.preventDefault();
+    const login = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPassword').value;
+
+    console.log("Before fetch");
+        
     fetch('/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }, 
-        body: JSON.stringify({login: login, password : pass})
-
+        },
+        body: JSON.stringify({ login: login, password: pass })
     })
+        .then(response => {
+            console.log("Response status:", response.status);
+            return response.text();
+        })
+        .then(data => {
+            console.log("Response body:", data);
+            document.cookie = "asdasd";
+        })
+        .catch(error => {
+            console.error("Fetch error:", error);
+            alert("error: ",error);
+    });
+    document.getElementById('modalContainer').innerHTML = "";
+
 }
 function signup(){
-    const login = document.getElementById('signupName').value.trim;
+    const login = document.getElementById('signupName').value.trim();
     const pass = document.getElementById('signupPassword').value;
-    const email = document.getElementById('signusignupEmail').value.trim;
+    const email = document.getElementById('signupEmail').value.trim();
     fetch('/signup', {
         method: 'POST',
         headers: {

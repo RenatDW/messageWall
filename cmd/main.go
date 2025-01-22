@@ -114,27 +114,45 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginUser(w http.ResponseWriter, req *http.Request) {
+
 	requestUserLogin := requestUserLogin{}
-	json.NewDecoder(req.Body).Decode(&requestUserLogin)
+	if err := json.NewDecoder(req.Body).Decode(&requestUserLogin); err != nil {
+		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		return
+	}
 	var user User
+	if !identification(requestUserLogin, &user, w) {
+		return
+	}
+	authorization(user, requestUserLogin, w)
+}
+
+func authorization(user User, requestUserLogin requestUserLogin, w http.ResponseWriter) {
+	if user.Password == requestUserLogin.Password {
+		us := requestUser{Email: user.Email, Password: user.Password, Login: user.Name}
+		json.NewEncoder(w).Encode(&us)
+
+	} else {
+		http.Error(w, "Wrong pass", http.StatusUnauthorized)
+	}
+}
+
+func identification(requestUserLogin requestUserLogin, user *User, w http.ResponseWriter) bool {
 	db := connectDB()
 	err := db.Where("name = ?", requestUserLogin.Login).Or("email = ?", requestUserLogin.Login).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "User not found", http.StatusNotFound)
-		} else {
-			log.Printf("Database error: %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
-		return
-	}
-	if user.Password == requestUserLogin.Password {
-		w.WriteHeader(http.StatusAccepted)
-	} else {
-		http.Error(w, "Wrong pass", http.StatusBadGateway)
-		log.Print("Wrong pass")
-	}
+			log.Println("User not found")
 
+		} else {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			log.Println("Internal Server Error")
+
+		}
+		return false
+	}
+	return true
 }
 
 func signUpUser(w http.ResponseWriter, req *http.Request) {
@@ -173,7 +191,6 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 	http.HandleFunc("/signup", signUpUser)
-
 	http.HandleFunc("/run-script", runScriptHandler)
 	http.HandleFunc("/ws", webSocketHandler)
 	http.HandleFunc("/api/posts", getPosts)

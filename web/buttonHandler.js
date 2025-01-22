@@ -1,7 +1,4 @@
-
-
 const socket = new WebSocket('ws://localhost:8080/ws');
-// document.cookie = "user=John";
 
 socket.onmessage = function(event) {
     try {
@@ -184,11 +181,18 @@ function login(event){
     })
         .then(response => {
             console.log("Response status:", response.status);
-            return response.text();
+            return response.json();
         })
         .then(data => {
             console.log("Response body:", data);
-            document.cookie = "asdasd";
+            document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
+            document.cookie = `login=${data.login}; path=/;`;
+            document.cookie = `email=${data.email}; path=/;`;
+
+            document.getElementById('loginButton').style.display = 'none';
+            document.getElementById('signupButton').style.display = 'none';
+            document.querySelector('header').innerHTML = `${data.login} (${data.email})`;
+
         })
         .catch(error => {
             console.error("Fetch error:", error);
@@ -197,6 +201,7 @@ function login(event){
     document.getElementById('modalContainer').innerHTML = "";
 
 }
+
 function signup(){
     const login = document.getElementById('signupName').value.trim();
     const pass = document.getElementById('signupPassword').value;
@@ -222,12 +227,30 @@ function signup(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+    if (token) {
+        const jwt = token.split('=')[1];
+        fetch("/validate", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({token: jwt})
+            
+        }).then(response => response.json())
+        .then(data =>{
+            document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
+            document.cookie = `login=${data.login}; path=/;`;
+            document.cookie = `email=${data.email}; path=/;`;   
+            document.getElementById('loginButton').style.display = 'none';
+            document.getElementById('signupButton').style.display = 'none';
+            document.querySelector('header').innerHTML = `${data.login} (${data.email})`;
+        });
+    }
 
     document.getElementById('runScript').addEventListener('click' ,addPost);
-    
     document.getElementById('signupButton').addEventListener('click', showSignUpForm);
     document.getElementById('loginButton').addEventListener('click',showLoginForm );
-    
     
     loadPosts();
 });

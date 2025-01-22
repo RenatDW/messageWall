@@ -1,12 +1,16 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -38,6 +42,11 @@ type requestBody struct {
 	UserID uint   `json:"user_id"`
 	Text   string `json:"text"`
 }
+type TokenWithMailAndLogin struct {
+	Token string `json:"token"`
+	Email string `json:"email"`
+	Login string `json:"login"`
+}
 
 type requestUser struct {
 	Login    string `json:"login"`
@@ -50,6 +59,11 @@ type requestUserLogin struct {
 	Password string `json:"password"`
 }
 
+type requestToken struct {
+	Token string `json:"token"`
+}
+
+var secretKey = []byte("op12")
 var upgrader = websocket.Upgrader{}
 var clients = make(map[*websocket.Conn]bool)
 
@@ -129,12 +143,56 @@ func loginUser(w http.ResponseWriter, req *http.Request) {
 
 func authorization(user User, requestUserLogin requestUserLogin, w http.ResponseWriter) {
 	if user.Password == requestUserLogin.Password {
-		us := requestUser{Email: user.Email, Password: user.Password, Login: user.Name}
-		json.NewEncoder(w).Encode(&us)
+		token, err := generateJWT(user)
+		if err != nil {
+			log.Print("error with JWT token")
+		}
+		TokenWithMailAndLogin := TokenWithMailAndLogin{Token: token, Login: user.Name, Email: user.Email}
+		json.NewEncoder(w).Encode(&TokenWithMailAndLogin)
 
 	} else {
 		http.Error(w, "Wrong pass", http.StatusUnauthorized)
 	}
+}
+
+func generateJWT(user User) (string, error) {
+	claims := jwt.MapClaims{
+		"userId": user.ID,
+		"login":  user.Name,
+		"email":  user.Email,
+		"exp":    time.Now().Add(time.Hour * 24).Unix(),
+		"iat":    time.Now().Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(secretKey)
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
+}
+
+func validateJWT(tokenString string) (*jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return secretKey, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error parsing token: %w", err)
+	}
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("invalid claims")
+	}
+
+	return &claims, nil
 }
 
 func identification(requestUserLogin requestUserLogin, user *User, w http.ResponseWriter) bool {
@@ -187,10 +245,56 @@ func signUpUser(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User signed up successfully"})
 }
 
+func validate(w http.ResponseWriter, r *http.Request) {
+	token := requestToken{}
+	err := json.NewDecoder(r.Body).Decode(&token)
+	if err != nil {
+		log.Print("error with decode")
+	}
+	claims, err := validateJWT(token.Token)
+	if err != nil {
+		log.Print("error with validation", err)
+		return
+	}
+	if tu, _ := claims.GetExpirationTime(); tu.Unix() > time.Now().Unix() {
+		parts := strings.Split(token.Token, ".")
+		if len(parts) != 3 {
+			fmt.Println("Invalid token format")
+			return
+		}
+
+		payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+		if err != nil {
+			fmt.Println("Error decoding payload:", err)
+			return
+		}
+
+		var data map[string]interface{}
+		if err := json.Unmarshal(payload, &data); err != nil {
+			fmt.Println("Error unmarshaling payload:", err)
+			return
+		}
+		email, emailOk := data["email"].(string)
+		login, loginOk := data["login"].(string)
+		if emailOk && loginOk {
+			tok := TokenWithMailAndLogin{Token: token.Token, Email: email, Login: login}
+			json.NewEncoder(w).Encode(&tok)
+		} else if !emailOk {
+			log.Print(login)
+			log.Print("error with decode email")
+		} else if !loginOk {
+			log.Print(email)
+			log.Print("error with decode login")
+		}
+	}
+
+}
+
 func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 	http.HandleFunc("/signup", signUpUser)
+	http.HandleFunc("/validate", validate)
 	http.HandleFunc("/run-script", runScriptHandler)
 	http.HandleFunc("/ws", webSocketHandler)
 	http.HandleFunc("/api/posts", getPosts)

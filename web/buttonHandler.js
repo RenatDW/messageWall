@@ -25,7 +25,7 @@ function addPost(){
             alert("Message cannot be empty!");
                 return;
         }
-        fetch('/run-script', {
+        fetch('/add-post', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

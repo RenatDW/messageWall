@@ -19,18 +19,21 @@ socket.onmessage = function(event) {
 };
 
 function addPost(){
-    const messageBoard = document.querySelector('.message-board');
-    const messageText = messageInput.value.trim();
+    const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+    if (token) {
+        const jwt = token.split('=')[1];
+        const messageBoard = document.querySelector('.message-board');
+        const messageText = messageInput.value.trim();
         if (messageText === "") {
             alert("Message cannot be empty!");
-                return;
+            return;
         }
         fetch('/add-post', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             }, 
-            body: JSON.stringify({user_id: 0, text : messageText})
+            body: JSON.stringify({token: jwt, text: messageText})
         })
             .then(response => {
                 if (response.ok) {
@@ -56,6 +59,7 @@ function addPost(){
             .catch(error => {
                 alert('Error: ' + error.message);
             });
+        }
 }
 
 function loadPosts() {

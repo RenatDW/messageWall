@@ -3,6 +3,8 @@ package database
 import (
 	"log"
 
+	"cmd/main.go/internal/models"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -15,4 +17,12 @@ func ConnectDB() *gorm.DB {
 		log.Println("error with data base connection")
 	}
 	return db
+}
+
+func GetUserName(id uint) string {
+	db := ConnectDB()
+	user := models.User{}
+	db.Where("id = ?", id).First(&user)
+
+	return user.Name
 }

@@ -40,7 +40,8 @@ type TokenAllData struct {
 
 type WebhookPayload struct {
 	ID     uint   `json:"id"`
-	UserID int    `json:"user_id"`
+	UserID uint   `json:"user_id"`
+	Login  string `json:"login"`
 	Text   string `json:"text"`
 	Action string `json:"action"`
 }

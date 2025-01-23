@@ -2,16 +2,22 @@ const socket = new WebSocket('ws://localhost:8080/ws');
 
 socket.onmessage = function(event) {
     try {
-        const messageBoard = document.querySelector('.message-board');
-        const messageBlock = document.createElement('div');
-        messageBlock.classList.add('message-others');
-        const parsedObject = JSON.parse(event.data);
+        const login_cookie = document.cookie.split('; ').find(row => row.startsWith('login='));
+            if (login_cookie) {
+                const login = login_cookie.split('=')[1];
+                const parsedObject = JSON.parse(event.data);
+                if (login != parsedObject.login){
+                    const messageBoard = document.querySelector('.message-board');
+                    const messageBlock = document.createElement('div');
+                    messageBlock.classList.add('message-others');
+                    console.log(parsedObject);
+                    messageBlock.innerHTML = `<strong>${parsedObject.login}</strong> : ${parsedObject.text}`;
 
-        messageBlock.innerHTML = `<strong>${parsedObject.user_id}</strong> : ${parsedObject.text}`;
-
-        if (messageBoard) {
-            messageBoard.appendChild(messageBlock);
-            socket.send(parsedObject)
+                    if (messageBoard) {
+                        messageBoard.appendChild(messageBlock);
+                        socket.send(parsedObject)
+                    }
+                }
         }
     } catch {
         console.log("Failed to parse JSON");

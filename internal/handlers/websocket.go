@@ -87,7 +87,7 @@ func startWebhookListener() {
 					log.Printf("Error parsing notification: %v", err)
 					continue
 				}
-
+				payload.Login = database.GetUserName(payload.UserID)
 				notifyClients(payload)
 
 			}

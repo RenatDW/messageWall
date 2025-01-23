@@ -74,9 +74,15 @@ function loadPosts() {
         .then(response => response.json())
         .then(data => {
             const postsContainer = document.getElementById('posts');
+            const login_cookie = document.cookie.split('; ').find(row => row.startsWith('login='));
+            const login = login_cookie.split('=')[1];
             data.forEach(post => {
                 const postDiv = document.createElement('div');
-                postDiv.classList.add('message');
+                if (login == post.User.Name){
+                    postDiv.classList.add('message');
+                }else{
+                    postDiv.classList.add('message-others');
+                }
                 postDiv.innerHTML = `<strong>${post.User.Name}:</strong> ${post.Text}`;
                 messageBoard.appendChild(postDiv);
             });

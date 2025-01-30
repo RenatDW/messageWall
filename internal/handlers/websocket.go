@@ -78,7 +78,7 @@ func startWebhookListener() {
 	for {
 		select {
 		case notification := <-listener.Notify:
-			if notification != nil {
+			if notification != nil && notification.Extra != "" {
 				log.Printf("Received notification: %s", notification.Extra)
 
 				var payload models.WebhookPayload

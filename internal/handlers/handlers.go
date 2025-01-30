@@ -13,6 +13,8 @@ func StartServer() {
 	http.HandleFunc("/ws", WebSocketHandler)
 	http.HandleFunc("/api/posts", GetPosts)
 	http.HandleFunc("/login", LoginUser)
+	http.HandleFunc("/delete-message", DeletePost)
+	http.HandleFunc("/edit-message", EditPost)
 	log.Println("Server is running on http://localhost:8080")
 
 	go startWebhookListener()

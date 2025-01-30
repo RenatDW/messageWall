@@ -73,21 +73,74 @@ function loadPosts() {
     fetch('/api/posts')
         .then(response => response.json())
         .then(data => {
-            const postsContainer = document.getElementById('posts');
             const login_cookie = document.cookie.split('; ').find(row => row.startsWith('login='));
-            const login = login_cookie.split('=')[1];
-            data.forEach(post => {
-                const postDiv = document.createElement('div');
-                if (login == post.User.Name){
-                    postDiv.classList.add('message');
-                }else{
-                    postDiv.classList.add('message-others');
-                }
-                postDiv.innerHTML = `<strong>${post.User.Name}:</strong> ${post.Text}`;
-                messageBoard.appendChild(postDiv);
-            });
-        })
-        .catch(error => console.error('Error fetching posts:', error));
+        const login = login_cookie ? login_cookie.split('=')[1] : '';
+
+        data.forEach(post => {
+            const postDiv = document.createElement('div');
+            postDiv.classList.add(login === post.User.Name ? 'message' : 'message-others');
+
+            // Add post content and buttons conditionally
+            postDiv.innerHTML = `
+                <strong>${post.User.Name}:</strong> <span class="post-text">${post.Text}</span>
+                ${login === post.User.Name ? `
+                    <button class="edit-btn">Edit</button>
+                    <button class="delete-btn">Delete</button>
+                ` : ''}
+            `;
+
+            messageBoard.appendChild(postDiv);
+
+            if (login === post.User.Name) {
+                // Handle delete functionality
+                const deleteButton = postDiv.querySelector('.delete-btn');
+                deleteButton.addEventListener('click',  () => deleteBtn(postDiv, post.ID));
+
+                // Handle edit functionality
+                const editButton = postDiv.querySelector('.edit-btn');
+                editButton.addEventListener('click', () => editBtn(postDiv, post.ID));
+            }
+        });
+    }).catch(error => console.error('Error fetching posts:', error));
+}
+function deleteBtn(postDiv, ID){
+    const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+    if (token && token.split('=')[1] != "") {
+        const jwt = token.split('=')[1];
+        postDiv.remove();
+        fetch('/delete-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }, 
+                body: JSON.stringify({token: jwt, id:ID})
+            })
+    }
+    // Optional: Send request to the server to delete the post
+
+}
+
+function editBtn(postDiv, ID){
+    const postTextSpan = postDiv.querySelector('.post-text');
+    const newText = prompt('Edit your message:', postTextSpan.textContent);
+
+    if (newText !== null && newText.trim() !== '') {
+        postTextSpan.textContent = newText;
+        const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+        if (token && token.split('=')[1] != "") {
+            const jwt = token.split('=')[1];
+            fetch('/edit-message',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }, 
+                body: JSON.stringify({token: jwt, id:ID ,text: newText})
+            })
+        }
+
+        // Optional: Send request to the server to update the post
+
+    }
 }
 
 function showLoginForm() {
@@ -207,7 +260,7 @@ function login(event){
 
             document.getElementById('loginButton').style.display = 'none';
             document.getElementById('signupButton').style.display = 'none';
-            document.querySelector('header').innerHTML = `${data.login} (${data.email})`;
+            location.reload();
 
         })
         .catch(error => {
@@ -242,9 +295,16 @@ function signup(){
     });
 }
 
+function exit(){
+    document.cookie = 'email=;';
+    document.cookie = 'login=;';
+    document.cookie = 'token=;';
+    location.reload();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const token = document.cookie.split('; ').find(row => row.startsWith('token='));
-    if (token) {
+    if (token && token.split('=')[1] != "") {
         const jwt = token.split('=')[1];
         fetch("/validate", {
             method: 'POST',
@@ -258,15 +318,23 @@ document.addEventListener('DOMContentLoaded', () => {
             document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
             document.cookie = `login=${data.login}; path=/;`;
             document.cookie = `email=${data.email}; path=/;`;   
-            document.getElementById('loginButton').style.display = 'none';
-            document.getElementById('signupButton').style.display = 'none';
-            document.querySelector('header').innerHTML = `${data.login} (${data.email})`;
+            document.querySelector('header').innerHTML = `${data.login} (${data.email}) 
+            <div class="auth-buttons">
+                <button id="exitButton">Exit</button> 
+            </div>`;
+            document.getElementById('exitButton').addEventListener('click' ,exit);
         });
+    }else{
+        document.querySelector('header').innerHTML = `<div class="auth-buttons">
+            <button id="loginButton">Login</button>
+            <button id="signupButton">Sign Up</button>
+        </div>`;
+        document.getElementById('signupButton').addEventListener('click', showSignUpForm);
+        document.getElementById('loginButton').addEventListener('click',showLoginForm );
+
     }
 
     document.getElementById('runScript').addEventListener('click' ,addPost);
-    document.getElementById('signupButton').addEventListener('click', showSignUpForm);
-    document.getElementById('loginButton').addEventListener('click',showLoginForm );
     
     loadPosts();
 });

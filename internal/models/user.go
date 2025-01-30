@@ -52,3 +52,14 @@ type Post struct {
 	Text   string
 	User   User `gorm:"foreignKey:UserID"` // Establish relationship
 }
+
+type EditPost struct {
+	ID    uint   `json:"id"`
+	Text  string `json:"text"`
+	Token string `json:"token"` // Establish relationship
+}
+
+type DeletePost struct {
+	ID    uint   `json:"id"`
+	Token string `json:"token"` // Establish relationship
+}

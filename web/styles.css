@@ -104,6 +104,14 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.message > button{
+    float: right;
+    margin-left: auto;
+    margin-top: -5px;
+    padding: 5px 10px;
+    font-size: 14px;
+
+}
 .message-others {
     font-size: 16px;
     color: #000;

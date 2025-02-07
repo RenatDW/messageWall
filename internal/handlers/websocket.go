@@ -57,7 +57,7 @@ func startWebhookListener() {
 	defer sqlDB.Close()
 
 	listener := pq.NewListener(
-		"host=localhost user=postgres password=1234 dbname=go_fp port=5432 sslmode=disable TimeZone=Asia/Shanghai",
+		"host=localhost user=postgres password=1234 dbname=go_fp port=5432 sslmode=disable TimeZone=Europe/Moscow",
 		10*time.Second,
 		time.Minute,
 		func(event pq.ListenerEventType, err error) {
@@ -68,9 +68,17 @@ func startWebhookListener() {
 	)
 	defer listener.Close()
 
-	err = listener.Listen("data_update")
+	err = listener.Listen("data_update_insert")
 	if err != nil {
-		log.Fatalf("Failed to listen on 'data_update': %v", err)
+		log.Fatalf("Failed to listen on 'data_update_insert': %v", err)
+	}
+	err = listener.Listen("data_update_update")
+	if err != nil {
+		log.Fatalf("Failed to listen on 'data_update_update': %v", err)
+	}
+	err = listener.Listen("data_update_delete")
+	if err != nil {
+		log.Fatalf("Failed to listen on 'data_update_delete': %v", err)
 	}
 
 	log.Println("Listening for data_update notifications...")

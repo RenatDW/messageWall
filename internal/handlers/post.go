@@ -25,6 +25,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	data, err := CollectData(tokenAndText.Token)
 	if err != nil {
 		log.Print("error with parse")
+		return
 	}
 	db := database.ConnectDB()
 	err = db.AutoMigrate(&models.Post{})

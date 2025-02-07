@@ -1,26 +1,80 @@
 const socket = new WebSocket('ws://localhost:8080/ws');
 
-socket.onmessage = function(event) {
-    try {
-        const login_cookie = document.cookie.split('; ').find(row => row.startsWith('login='));
-            if (login_cookie) {
-                const login = login_cookie.split('=')[1];
-                const parsedObject = JSON.parse(event.data);
-                if (login != parsedObject.login){
-                    const messageBoard = document.querySelector('.message-board');
-                    const messageBlock = document.createElement('div');
-                    messageBlock.classList.add('message-others');
-                    console.log(parsedObject);
-                    messageBlock.innerHTML = `<strong>${parsedObject.login}</strong> : ${parsedObject.text}`;
+function getCookie(name) {
+    const cookie = document.cookie.split('; ').find(row => row.startsWith(`${name}=`));
+    return cookie ? cookie.split('=')[1] : null;
+}
 
-                    if (messageBoard) {
-                        messageBoard.appendChild(messageBlock);
-                        socket.send(parsedObject)
-                    }
-                }
+function handleInsert(res) {
+    try {
+        const messageBoard = document.querySelector('.message-board');
+        const messageBlock = document.createElement('div');
+        const login = getCookie('login');
+
+        if (login && String(login) === String(res.login)) {
+            messageBlock.innerHTML = `
+                <strong>${res.login}:</strong>
+                <span class="post-text">${res.text}</span>
+                <span class="post-id" style="display:none">${res.id}</span>
+                <button class="edit-btn">Edit</button>
+                <button class="delete-btn">Delete</button>`;
+            messageBlock.classList.add('message');
+
+            // Event handlers for edit and delete.
+            const deleteButton = messageBlock.querySelector('.delete-btn');
+            deleteButton.addEventListener('click', () => deleteBtn(messageBlock, res.id));
+
+            const editButton = messageBlock.querySelector('.edit-btn');
+            editButton.addEventListener('click', () => editBtn(messageBlock, res.id));
+        } else {
+            messageBlock.innerHTML = `<strong>${res.login}</strong> : ${res.text}`;
+            messageBlock.classList.add('message-others');
         }
-    } catch {
-        console.log("Failed to parse JSON");
+
+        if (messageBoard) {
+            messageBoard.prepend(messageBlock);
+            socket.send(res);
+        }
+    } catch (error) {
+        console.log("Failed to parse JSON", error);
+    }
+}
+
+function handleUpdate(res) {
+    const messages = document.querySelectorAll('.message, .message-others');
+    messages.forEach(message => {
+        const postIdElement = message.querySelector('.post-id');
+        if (postIdElement && postIdElement.textContent == res.id) {
+            const postText = message.querySelector('.post-text');
+            if (postText) postText.textContent = res.text;
+        }
+    });
+}
+
+function handleDelete(res) {
+    const messages = document.querySelectorAll('.message, .message-others');
+    messages.forEach(message => {
+        const postIdElement = message.querySelector('.post-id');
+        if (postIdElement && postIdElement.textContent == res.id) {
+            message.remove();
+        }
+    });
+}
+
+socket.onmessage = function(event) {
+    const res = JSON.parse(event.data);
+    switch (res.action) {
+        case "insert":
+            handleInsert(res);
+            break;
+        case "update":
+            handleUpdate(res);
+            break;
+        case "delete":
+            handleDelete(res);
+            break;
+        default:
+            console.warn("Unknown action:", res.action);
     }
 };
 
@@ -82,7 +136,7 @@ function loadPosts() {
 
             // Add post content and buttons conditionally
             postDiv.innerHTML = `
-                <strong>${post.User.Name}:</strong> <span class="post-text">${post.Text}</span>
+                <strong>${post.User.Name}:</strong> <span class="post-text">${post.Text}</span><span class="post-id" style="display:none">${post.ID}</span>
                 ${login === post.User.Name ? `
                     <button class="edit-btn">Edit</button>
                     <button class="delete-btn">Delete</button>
@@ -323,18 +377,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="exitButton">Exit</button> 
             </div>`;
             document.getElementById('exitButton').addEventListener('click' ,exit);
+        }).catch(() => {
+            setupAuthButtons();
         });
-    }else{
-        document.querySelector('header').innerHTML = `<div class="auth-buttons">
-            <button id="loginButton">Login</button>
-            <button id="signupButton">Sign Up</button>
-        </div>`;
-        document.getElementById('signupButton').addEventListener('click', showSignUpForm);
-        document.getElementById('loginButton').addEventListener('click',showLoginForm );
-
+    } else {
+        setupAuthButtons();
     }
+
+function setupAuthButtons() {
+    document.querySelector('header').innerHTML = `<div class="auth-buttons">
+        <button id="loginButton">Login</button>
+        <button id="signupButton">Sign Up</button>
+    </div>`;
+    document.getElementById('signupButton').addEventListener('click', showSignUpForm);
+    document.getElementById('loginButton').addEventListener('click', showLoginForm);
+}
 
     document.getElementById('runScript').addEventListener('click' ,addPost);
     
     loadPosts();
 });
+
+function getAllMessages() {
+    const messageBoard = document.querySelector('.message-board');
+    const messages = messageBoard.querySelectorAll('.message, .message-others');
+    
+    const messageArray = Array.from(messages).map(messageDiv => {
+        const textElement = messageDiv.querySelector('.post-text');
+        const userElement = messageDiv.querySelector('strong');
+        return {
+            user: userElement.textContent.replace(':', ''),
+            text: textElement.textContent
+        };
+    });
+    
+    return messageArray;
+}

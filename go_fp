@@ -1,0 +1,132 @@
+_HiStOrY_V2_
+/?
+help /?
+/help ?
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL
+);
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL
+);
+\d users
+DROP TABLE users
+\d users
+exit
+\q
+CREATE DATABASE go_fp;
+\l
+\c your_dbname
+\c go_fp
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL
+);
+\d
+\d users
+\q
+\c go_fp
+\l
+\dt
+\d users
+ALTER TABLE users
+ADD CONSTRAINT unique_name UNIQUE (name);
+\d users
+INSERT INTO users (name, password) VALUES ('John', 'password1'); -- This works
+INSERT INTO users (name, password) VALUES ('John', 'password2'); -- This fails
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    User_id int NOT NULL,
+    Text VARCHAR(300) UNIQUE NOT NULL,
+);
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    User_id int NOT NULL,
+    Text VARCHAR(300) UNIQUE NOT NULL
+);
+SELECT * FROM POSTS
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    User_id int NOT NULL,
+    Text VARCHAR(300) UNIQUE NOT NULL
+);
+SELECT * FROM POSTS
+\d
+\d posts
+\dt
+SELECT * FROM POSTS;
+SELECT * FROM POSTS;
+SELECT * FROM USER_ID;
+SELECT * FROM USER_ID;
+SELECT * FROM USERS;
+SELECT * FROM USERS;
+SELECT * FROM USERS;
+SELECT * FROM USER_ID;
+SELECT * FROM POSTS;
+SELECT * FROM POSTS;
+SELECT * FROM USER_ID;
+SELECT * FROM USERS;
+psql -h localhost -U postgres -d go_fp -W
+exit
+\q
+\dt go_fp
+\dl go_fp
+\f go_fp
+\d go_fp
+\d+ go_fp
+/tablse
+;
+/dt
+s
+;
+;
+\f
+\td
+\dt
+\dl
+\d
+\d
+SELECT * from users
+;
+SELECT * from posts;
+\d+ posts
+q
+q
+exit
+\q
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER update_post_timestamp
+BEFORE UPDATE ON posts
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+/q
+/e
+/d
+/dt
+exit
+\q
+-d
+]d
+\d
+/d
+\dt
+\dl
+\ds
+\l
+\d go_fp
+\l go_fp
+\ds go_fp
+\dt go_fp
+\s go_fp

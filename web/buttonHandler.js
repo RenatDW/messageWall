@@ -113,24 +113,24 @@ function addPost() {
                 } else {
                     throw new Error('Failed to execute script.');
                 }
-            })
-            .then(result => {
-                const messageBlock = document.createElement('div');
-                messageBlock.classList.add('message');
-                messageBlock.innerHTML = `<strong>You:</strong> ${messageText}`;
-
-                if (messageBoard) {
-                    messageBoard.appendChild(messageBlock);
-                    socket.send(messageText)
-                } else {
-                    console.error('Message board not found.');
-                }
-
-                messageInput.value = "";
-            })
-            .catch(error => {
-                alert('Error: ' + error.message);
             });
+        // .then(result => {
+        //     const messageBlock = document.createElement('div');
+        //     messageBlock.classList.add('message');
+        //     messageBlock.innerHTML = `<strong>You:</strong> ${messageText}`;
+
+        //     if (messageBoard) {
+        //         messageBoard.appendChild(messageBlock);
+        //         socket.send(messageText)
+        //     } else {
+        //         console.error('Message board not found.');
+        //     }
+
+        //     messageInput.value = "";
+        // })
+        // .catch(error => {
+        //     alert('Error: ' + error.message);
+        // });
     }
 }
 
@@ -626,6 +626,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Apply saved text size
     const currentSize = getTextSize();
     setTextSize(currentSize);
+
+    // Добавляем обработчики событий при загрузке DOM
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        // Загружаем сохраненный текст при загрузке страницы
+        const savedText = getMessageDraft();
+        if (savedText) {
+            messageInput.value = savedText;
+        }
+
+        // Сохраняем текст при вводе с небольшой задержкой
+        let timeout;
+        messageInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                saveMessageDraft(messageInput.value);
+            }, 500); // Задержка 500мс для оптимизации производительности
+        });
+    }
 });
 
 function getAllMessages() {
@@ -746,4 +765,15 @@ function createParticles(element) {
             particle.remove();
         }, 1000);
     }
+}
+
+// Функция для сохранения текста в cookies
+function saveMessageDraft(text) {
+    document.cookie = `messageDraft=${encodeURIComponent(text)}; path=/; max-age=3600`; // Сохраняем на 1 час
+}
+
+// Функция для получения сохраненного текста из cookies
+function getMessageDraft() {
+    const cookie = document.cookie.split('; ').find(row => row.startsWith('messageDraft='));
+    return cookie ? decodeURIComponent(cookie.split('=')[1]) : '';
 }

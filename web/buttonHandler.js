@@ -10,29 +10,41 @@ function handleInsert(res) {
         const messageBoard = document.querySelector('.message-board');
         const messageBlock = document.createElement('div');
         const login = getCookie('login');
+        const currentSize = getTextSize(); // Get current font size
 
         if (login && String(login) === String(res.login)) {
             messageBlock.innerHTML = `
-                <strong>${res.login}:</strong>
-                <span class="post-text">${res.text}</span>
+                <strong style="font-size: ${currentSize}px">${res.login}:</strong>
+                <span class="post-text" style="font-size: ${currentSize}px">${res.text}</span>
                 <span class="post-id" style="display:none">${res.id}</span>
-                <button class="edit-btn">Edit</button>
-                <button class="delete-btn">Delete</button>`;
+                <button class="edit-btn" style="font-size: ${currentSize}px">Edit</button>
+                <button class="delete-btn" style="font-size: ${currentSize}px">Delete</button>`;
             messageBlock.classList.add('message');
 
-            // Event handlers for edit and delete.
+            // Event handlers for edit and delete
             const deleteButton = messageBlock.querySelector('.delete-btn');
             deleteButton.addEventListener('click', () => deleteBtn(messageBlock, res.id));
 
             const editButton = messageBlock.querySelector('.edit-btn');
             editButton.addEventListener('click', () => editBtn(messageBlock, res.id));
         } else {
-            messageBlock.innerHTML = `<strong>${res.login}</strong> : ${res.text}`;
+            messageBlock.innerHTML = `
+                <strong style="font-size: ${currentSize}px">${res.login}:</strong>
+                <span class="post-text" style="font-size: ${currentSize}px">${res.text}</span>`;
             messageBlock.classList.add('message-others');
         }
 
         if (messageBoard) {
             messageBoard.prepend(messageBlock);
+
+            // Apply font size to all elements in the new message
+            const allElements = messageBlock.querySelectorAll('*');
+            allElements.forEach(element => {
+                if (element.tagName !== 'DIV') {
+                    element.style.fontSize = `${currentSize}px`;
+                }
+            });
+
             socket.send(res);
         }
     } catch (error) {
@@ -129,6 +141,7 @@ function loadPosts() {
         .then(data => {
             const login_cookie = document.cookie.split('; ').find(row => row.startsWith('login='));
             const login = login_cookie ? login_cookie.split('=')[1] : '';
+            const currentSize = getTextSize();
 
             data.forEach(post => {
                 const postDiv = document.createElement('div');
@@ -136,27 +149,36 @@ function loadPosts() {
 
                 // Add post content and buttons conditionally
                 postDiv.innerHTML = `
-                <strong>${post.User.Name}:</strong> <span class="post-text">${post.Text}</span><span class="post-id" style="display:none">${post.ID}</span>
-                ${login === post.User.Name ? `
-                    <button class="edit-btn">Edit</button>
-                    <button class="delete-btn">Delete</button>
-                ` : ''}
-            `;
+                    <strong style="font-size: ${currentSize}px">${post.User.Name}:</strong> 
+                    <span class="post-text" style="font-size: ${currentSize}px">${post.Text}</span>
+                    <span class="post-id" style="display:none">${post.ID}</span>
+                    ${login === post.User.Name ? `
+                        <button class="edit-btn" style="font-size: ${currentSize}px">Edit</button>
+                        <button class="delete-btn" style="font-size: ${currentSize}px">Delete</button>
+                    ` : ''}
+                `;
 
                 messageBoard.appendChild(postDiv);
 
+                // Apply font size to all elements in the post
+                const allElements = postDiv.querySelectorAll('*');
+                allElements.forEach(element => {
+                    if (element.tagName !== 'DIV') {
+                        element.style.fontSize = `${currentSize}px`;
+                    }
+                });
+
                 if (login === post.User.Name) {
-                    // Handle delete functionality
                     const deleteButton = postDiv.querySelector('.delete-btn');
                     deleteButton.addEventListener('click', () => deleteBtn(postDiv, post.ID));
 
-                    // Handle edit functionality
                     const editButton = postDiv.querySelector('.edit-btn');
                     editButton.addEventListener('click', () => editBtn(postDiv, post.ID));
                 }
             });
         }).catch(error => console.error('Error fetching posts:', error));
 }
+
 function deleteBtn(postDiv, ID) {
     const token = document.cookie.split('; ').find(row => row.startsWith('token='));
     if (token && token.split('=')[1] != "") {
@@ -312,6 +334,23 @@ function login(event) {
             document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
             document.cookie = `login=${data.login}; path=/;`;
             document.cookie = `email=${data.email}; path=/;`;
+            document.querySelector('header').innerHTML = `
+                <div class="header-content">
+                    <div class="header-left">
+                        <a href="/" class="home-link">Home</a>
+                        <span class="author-info">Created by Artem Krylov</span>
+                    </div>
+                    <div class="header-right">
+                        <span class="user-info">${data.login} (${data.email})</span>
+                        <div class="auth-buttons">
+                            <button id="exitButton">Exit</button> 
+                        </div>
+                        <div class="text-controls">
+                            <button id="decreaseText">A-</button>
+                            <button id="increaseText">A+</button>
+                        </div>
+                    </div>
+                </div>`;
 
             document.getElementById('loginButton').style.display = 'none';
             document.getElementById('signupButton').style.display = 'none';
@@ -373,11 +412,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
                 document.cookie = `login=${data.login}; path=/;`;
                 document.cookie = `email=${data.email}; path=/;`;
-                document.querySelector('header').innerHTML = `${data.login} (${data.email}) 
-            <div class="auth-buttons">
-                <button id="exitButton">Exit</button> 
-            </div>`;
+                document.querySelector('header').innerHTML = `
+                    <div class="header-content">
+                        <div class="header-left">
+                            <a href="/" class="home-link">Home</a>
+                            <span class="author-info">About author</span>
+                        </div>
+                        <div class="header-right">
+                            <span class="user-info">${data.login} (${data.email})</span>
+                            <div class="auth-buttons">
+                                <button id="exitButton">Exit</button> 
+                            </div>
+                            <div class="text-controls">
+                                <button id="decreaseText">A-</button>
+                                <button id="increaseText">A+</button>
+                            </div>
+                        </div>
+                    </div>`;
+
+                // Reattach event listeners
                 document.getElementById('exitButton').addEventListener('click', exit);
+                document.getElementById('decreaseText').addEventListener('click', () => {
+                    const newSize = getTextSize() - 2;
+                    if (newSize >= 12) {
+                        setTextSize(newSize);
+                    }
+                });
+                document.getElementById('increaseText').addEventListener('click', () => {
+                    const newSize = getTextSize() + 2;
+                    if (newSize <= 24) {
+                        setTextSize(newSize);
+                    }
+                });
             }).catch(() => {
                 setupAuthButtons();
             });
@@ -386,17 +452,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupAuthButtons() {
-        document.querySelector('header').innerHTML = `<div class="auth-buttons">
-        <button id="loginButton">Login</button>
-        <button id="signupButton">Sign Up</button>
-    </div>`;
+        document.querySelector('header').innerHTML = `
+            <div class="header-content">
+                <div class="header-left">
+                    <a href="/" class="home-link">Home</a>
+                    <span class="author-info">Created by Artem Krylov</span>
+                </div>
+                <div class="header-right">
+                    <div class="auth-buttons">
+                        <button id="loginButton">Login</button>
+                        <button id="signupButton">Sign Up</button>
+                    </div>
+                    <div class="text-controls">
+                        <button id="decreaseText">A-</button>
+                        <button id="increaseText">A+</button>
+                    </div>
+                </div>
+            </div>`;
+
         document.getElementById('signupButton').addEventListener('click', showSignUpForm);
         document.getElementById('loginButton').addEventListener('click', showLoginForm);
+        document.getElementById('decreaseText').addEventListener('click', () => {
+            const newSize = getTextSize() - 2;
+            if (newSize >= 12) {
+                setTextSize(newSize);
+            }
+        });
+        document.getElementById('increaseText').addEventListener('click', () => {
+            const newSize = getTextSize() + 2;
+            if (newSize <= 24) {
+                setTextSize(newSize);
+            }
+        });
     }
 
     document.getElementById('runScript').addEventListener('click', addPost);
-
     loadPosts();
+
+    // Apply saved text size
+    const currentSize = getTextSize();
+    setTextSize(currentSize);
 });
 
 function getAllMessages() {
@@ -414,3 +509,64 @@ function getAllMessages() {
 
     return messageArray;
 }
+
+function setTextSize(size) {
+    document.cookie = `textSize=${size}; path=/;`;
+
+    // Base size for regular text
+    const baseSize = size;
+
+    // Larger sizes for headers
+    const h1Size = baseSize + 8;  // Biggest header
+    const h2Size = baseSize + 6;
+    const h3Size = baseSize + 4;
+    const h4Size = baseSize + 3;
+    const h5Size = baseSize + 2;
+    const h6Size = baseSize + 1;
+
+    // Update regular text elements
+    const regularElements = document.querySelectorAll('.message, .message-others, button, input, label, strong, span, p, textarea');
+    regularElements.forEach(element => {
+        element.style.fontSize = `${baseSize}px`;
+    });
+
+    // Update headers with their specific sizes
+    document.querySelectorAll('h1').forEach(h1 => h1.style.fontSize = `${h1Size}px`);
+    document.querySelectorAll('h2').forEach(h2 => h2.style.fontSize = `${h2Size}px`);
+    document.querySelectorAll('h3').forEach(h3 => h3.style.fontSize = `${h3Size}px`);
+    document.querySelectorAll('h4').forEach(h4 => h4.style.fontSize = `${h4Size}px`);
+    document.querySelectorAll('h5').forEach(h5 => h5.style.fontSize = `${h5Size}px`);
+    document.querySelectorAll('h6').forEach(h6 => h6.style.fontSize = `${h6Size}px`);
+
+    // Update input and textarea placeholders
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        input.style.fontSize = `${baseSize}px`;
+    });
+
+    // Update modal text if it exists
+    const modalElements = document.querySelectorAll('.modal *');
+    modalElements.forEach(element => {
+        if (element.tagName !== 'DIV') {
+            if (element.tagName === 'H1') element.style.fontSize = `${h1Size}px`;
+            else if (element.tagName === 'H2') element.style.fontSize = `${h2Size}px`;
+            else if (element.tagName === 'H3') element.style.fontSize = `${h3Size}px`;
+            else if (element.tagName === 'H4') element.style.fontSize = `${h4Size}px`;
+            else if (element.tagName === 'H5') element.style.fontSize = `${h5Size}px`;
+            else if (element.tagName === 'H6') element.style.fontSize = `${h6Size}px`;
+            else element.style.fontSize = `${baseSize}px`;
+        }
+    });
+
+    // Specifically target messageInput textarea
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.style.fontSize = `${baseSize}px`;
+    }
+}
+
+function getTextSize() {
+    const textSize = getCookie('textSize');
+    return textSize ? parseInt(textSize) : 16; // default size is 16px
+}
+

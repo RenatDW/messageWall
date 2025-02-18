@@ -96,26 +96,29 @@ button:hover {
 @keyframes deleteMessage {
     0% {
         opacity: 1;
-        transform: scale(1) rotate(0deg);
+        transform: scale(1) rotate(0deg) translateY(0);
         filter: blur(0);
         background-color: white;
         border-left: 0px solid #ff4444;
         clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
     }
-    20% {
-        transform: scale(1.02) rotate(1deg);
+    15% {
+        transform: scale(1.02) rotate(0deg) translateY(-10px);
         background-color: #fff0f0;
         border-left: 4px solid #ff4444;
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
     }
-    40% {
-        transform: scale(0.98) rotate(-1deg);
+    30% {
+        transform: scale(0.98) rotate(1deg) translateY(5px);
         background-color: #ffe0e0;
         border-left: 4px solid #ff4444;
-        clip-path: polygon(2% 0, 98% 0, 98% 100%, 2% 100%);
+    }
+    45% {
+        transform: scale(0.95) rotate(-1deg) translateY(-3px);
+        opacity: 0.9;
+        background-color: #ffd0d0;
     }
     60% {
-        transform: scale(0.95) rotate(2deg) translateX(2%);
+        transform: scale(0.9) rotate(2deg) translateX(2%);
         opacity: 0.8;
         filter: blur(1px);
         background-color: #ffd0d0;
@@ -124,7 +127,7 @@ button:hover {
         clip-path: polygon(5% 0, 95% 0, 95% 100%, 5% 100%);
     }
     80% {
-        transform: scale(0.9) rotate(-3deg) translateX(5%);
+        transform: scale(0.8) rotate(-3deg) translateX(5%);
         opacity: 0.4;
         filter: blur(2px);
         background-color: #ffc0c0;
@@ -150,30 +153,46 @@ button:hover {
         box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
     }
     50% {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        transform: translateY(-4px);
+        box-shadow: 0 6px 12px rgba(220, 53, 69, 0.3);
     }
     100% {
-        transform: translateY(-1px);
-        box-shadow: 0 3px 6px rgba(220, 53, 69, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.25);
     }
 }
 
-/* Анимации для сообщений */
+/* Анимации для редактирования */
 @keyframes editStart {
     0% {
         transform: scale(1);
         background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    30% {
+    50% {
         transform: scale(1.02);
         background-color: #f0f7ff;
-        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
     }
     100% {
         transform: scale(1);
         background-color: #f8f9fa;
-        box-shadow: 0 2px 12px rgba(0, 123, 255, 0.15);
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+    }
+}
+
+@keyframes editPulse {
+    0% {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+    }
+    70% {
+        border-color: #0056b3;
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+    100% {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
     }
 }
 
@@ -182,10 +201,10 @@ button:hover {
         transform: scale(1);
         background-color: #f8f9fa;
     }
-    30% {
+    50% {
         transform: scale(1.02);
         background-color: #e3ffe3;
-        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
     }
     100% {
         transform: scale(1);
@@ -542,40 +561,57 @@ h3 {
 
 .message.editing textarea {
     width: 100%;
-    padding: 8px;
+    padding: 12px;
     margin: 10px 0;
     border: 2px solid #007bff;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: inherit;
-    transition: all 0.2s ease;
+    resize: vertical;
+    min-height: 60px;
     background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+    transition: all 0.3s ease;
+    animation: editPulse 2s infinite;
 }
 
 .message.editing textarea:focus {
     outline: none;
     border-color: #0056b3;
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    animation: none;
 }
 
 .message.saving {
     animation: editSave 0.5s ease forwards;
 }
 
-/* Стили для кнопок в режиме редактирования */
+/* Стили для кнопок редактирования */
 .edit-controls {
     display: flex;
     gap: 10px;
     margin-top: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInUp 0.3s ease forwards;
 }
 
-.edit-controls button {
-    padding: 6px 12px;
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.save-btn, .cancel-btn {
+    padding: 8px 16px;
     border: none;
     border-radius: 4px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: 500;
 }
 
 .save-btn {
@@ -586,6 +622,7 @@ h3 {
 .save-btn:hover {
     background-color: #218838;
     transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
 }
 
 .cancel-btn {
@@ -596,52 +633,89 @@ h3 {
 .cancel-btn:hover {
     background-color: #5a6268;
     transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
 }
 
-.edit-controls button:active {
+.save-btn:active, .cancel-btn:active {
     transform: translateY(1px);
+    box-shadow: none;
+}
+
+/* Анимация для текста при сохранении */
+@keyframes textSaved {
+    0% {
+        color: inherit;
+    }
+    30% {
+        color: #28a745;
+    }
+    100% {
+        color: inherit;
+    }
+}
+
+.message.saved .post-text {
+    animation: textSaved 1s ease;
 }
 
 /* Стили для кнопки удаления */
 .delete-btn {
     background-color: #dc3545;
     color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
-    overflow: hidden;
 }
 
 .delete-btn:hover {
-    animation: deleteButtonHover 0.3s ease forwards;
+    animation: deleteButtonHover 0.4s ease forwards;
     background-color: #c82333;
 }
 
-.delete-btn:hover::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 200%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    );
-    animation: deleteButtonGlow 1s ease infinite;
+.delete-btn:active {
+    animation: none;
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(220, 53, 69, 0.2);
 }
 
-@keyframes deleteButtonGlow {
+/* Анимация для кнопки редактирования при наведении */
+@keyframes editButtonHover {
     0% {
-        left: -100%;
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+    }
+    50% {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
     }
     100% {
-        left: 100%;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.25);
     }
 }
 
-.delete-btn:active {
-    transform: scale(0.95) translateY(1px);
-    box-shadow: 0 1px 2px rgba(220, 53, 69, 0.2);
+/* Стили для кнопки редактирования */
+.edit-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.edit-btn:hover {
+    animation: editButtonHover 0.4s ease forwards;
+    background-color: #0056b3;
+}
+
+.edit-btn:active {
+    animation: none;
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 123, 255, 0.2);
 }

@@ -201,27 +201,98 @@ function deleteBtn(postDiv, ID) {
 
 }
 
-function editBtn(postDiv, ID) {
-    const postTextSpan = postDiv.querySelector('.post-text');
-    const newText = prompt('Edit your message:', postTextSpan.textContent);
+function editBtn(messageBlock, id) {
+    const textSpan = messageBlock.querySelector('.post-text');
+    const currentText = textSpan.textContent;
 
-    if (newText !== null && newText.trim() !== '') {
-        postTextSpan.textContent = newText;
-        const token = document.cookie.split('; ').find(row => row.startsWith('token='));
-        if (token && token.split('=')[1] != "") {
-            const jwt = token.split('=')[1];
+    // Добавляем класс для анимации начала редактирования
+    messageBlock.classList.add('editing');
+
+    // Создаем поле ввода
+    const input = document.createElement('textarea');
+    input.value = currentText;
+    input.style.fontSize = textSpan.style.fontSize;
+
+    // Создаем контейнер для кнопок
+    const editControls = document.createElement('div');
+    editControls.className = 'edit-controls';
+
+    // Создаем кнопки
+    const saveButton = document.createElement('button');
+    saveButton.textContent = 'Save';
+    saveButton.className = 'save-btn';
+
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.className = 'cancel-btn';
+
+    // Добавляем кнопки в контейнер
+    editControls.appendChild(saveButton);
+    editControls.appendChild(cancelButton);
+
+    // Заменяем текст на поле ввода и добавляем кнопки
+    textSpan.replaceWith(input);
+    messageBlock.appendChild(editControls);
+
+    // Устанавливаем фокус на поле ввода
+    input.focus();
+
+    // Функция для отмены редактирования
+    const cancelEdit = () => {
+        input.replaceWith(textSpan);
+        editControls.remove();
+        messageBlock.classList.remove('editing');
+    };
+
+    // Обработчик отмены
+    cancelButton.addEventListener('click', cancelEdit);
+
+    // Обработчик сохранения
+    saveButton.addEventListener('click', () => {
+        const newText = input.value.trim();
+        if (newText === '') {
+            alert('Message cannot be empty!');
+            return;
+        }
+
+        const token = getCookie('token');
+        if (token) {
             fetch('/edit-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ token: jwt, id: ID, text: newText })
-            })
+                body: JSON.stringify({ token: token, id: id, text: newText })
+            }).then(() => {
+                textSpan.textContent = newText;
+                input.replaceWith(textSpan);
+                editControls.remove();
+
+                // Добавляем классы для анимации сохранения
+                messageBlock.classList.remove('editing');
+                messageBlock.classList.add('saving');
+
+                // Добавляем класс для анимации текста
+                messageBlock.classList.add('saved');
+
+                // Удаляем классы после завершения анимации
+                setTimeout(() => {
+                    messageBlock.classList.remove('saving');
+                    messageBlock.classList.remove('saved');
+                }, 500);
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save changes');
+            });
         }
+    });
 
-        // Optional: Send request to the server to update the post
-
-    }
+    // Обработчик клавиши Escape для отмены
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            cancelEdit();
+        }
+    });
 }
 
 function showLoginForm() {

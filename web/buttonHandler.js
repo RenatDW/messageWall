@@ -183,14 +183,19 @@ function deleteBtn(postDiv, ID) {
     const token = document.cookie.split('; ').find(row => row.startsWith('token='));
     if (token && token.split('=')[1] != "") {
         const jwt = token.split('=')[1];
-        postDiv.remove();
-        fetch('/delete-message', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ token: jwt, id: ID })
-        })
+        createParticles(postDiv);
+        postDiv.classList.add('deleting');
+        setTimeout(() => {
+            fetch('/delete-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: jwt, id: ID })
+            }).then(() => {
+                postDiv.remove();
+            })
+        }, 1000);
     }
     // Optional: Send request to the server to delete the post
 
@@ -584,3 +589,46 @@ function getTextSize() {
     return textSize ? parseInt(textSize) : 16; // default size is 16px
 }
 
+function createParticles(element) {
+    const rect = element.getBoundingClientRect();
+    const particlesCount = 50; // Количество частиц
+
+    for (let i = 0; i < particlesCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+
+        // Случайное начальное положение внутри элемента
+        const x = Math.random() * rect.width;
+        const y = Math.random() * rect.height;
+
+        // Случайное направление движения
+        const tx = (Math.random() - 0.5) * 200; // Расстояние по X
+        const ty = (Math.random() - 0.5) * 200; // Расстояние по Y
+        const rotate = Math.random() * 360; // Вращение
+
+        // Устанавливаем CSS переменные для анимации
+        particle.style.setProperty('--tx', `${tx}px`);
+        particle.style.setProperty('--ty', `${ty}px`);
+        particle.style.setProperty('--r', `${rotate}deg`);
+
+        // Устанавливаем начальное положение
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+
+        // Случайный цвет из оттенков красного
+        const red = Math.floor(Math.random() * 128 + 128); // от 128 до 255
+        particle.style.backgroundColor = `rgb(${red}, ${red * 0.3}, ${red * 0.3})`;
+
+        // Случайный размер
+        const size = Math.random() * 4 + 2;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+
+        element.appendChild(particle);
+
+        // Удаляем частицу после завершения анимации
+        setTimeout(() => {
+            particle.remove();
+        }, 1000);
+    }
+}

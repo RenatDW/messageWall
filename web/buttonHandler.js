@@ -205,6 +205,9 @@ function editBtn(messageBlock, id) {
     const textSpan = messageBlock.querySelector('.post-text');
     const currentText = textSpan.textContent;
 
+    // Находим контейнер сообщений
+    const messageBoard = document.querySelector('.message-board');
+
     // Добавляем класс для анимации начала редактирования
     messageBlock.classList.add('editing');
 
@@ -255,6 +258,12 @@ function editBtn(messageBlock, id) {
             return;
         }
 
+        // Проверяем, изменился ли текст
+        if (newText === currentText) {
+            cancelEdit();
+            return;
+        }
+
         const token = getCookie('token');
         if (token) {
             fetch('/edit-message', {
@@ -267,6 +276,12 @@ function editBtn(messageBlock, id) {
                 textSpan.textContent = newText;
                 input.replaceWith(textSpan);
                 editControls.remove();
+
+                // Перемещаем сообщение вверх только если текст был изменен
+                messageBoard.prepend(messageBlock);
+
+                // Плавно прокручиваем к отредактированному сообщению
+                messageBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                 // Добавляем классы для анимации сохранения
                 messageBlock.classList.remove('editing');

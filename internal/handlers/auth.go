@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"cmd/main.go/internal/database"
 	"cmd/main.go/internal/models"
@@ -47,6 +48,15 @@ func SignUpUser(w http.ResponseWriter, req *http.Request) {
 	result := db.Create(&user)
 	if result.Error != nil {
 		log.Print("Error creating user:", result.Error)
+		errMsg := result.Error.Error()
+		if strings.Contains(errMsg, "unique_name") {
+			http.Error(w, "Username already exists", http.StatusConflict)
+			return
+		}
+		if strings.Contains(errMsg, "unique_email") {
+			http.Error(w, "Email already exists", http.StatusConflict)
+			return
+		}
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}

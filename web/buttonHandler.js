@@ -353,6 +353,7 @@ function showSignUpForm() {
     if (formContainer) {
         formContainer.innerHTML = `
             <h2 style="font-size: ${currentSize + 4}px">Sign Up</h2>
+            <div id="errorContainer" class="error-message"></div>
             <form id="signupForm">
                 <label for="signupName" style="font-size: ${currentSize}px">Name</label>
                 <input type="text" id="signupName" placeholder="Enter your name" style="font-size: ${currentSize}px" required>
@@ -375,6 +376,7 @@ function showSignUpForm() {
                     <span class="close-button" id="closeModal" style="font-size: ${currentSize}px">&times;</span>
                     <div id="formContainer">
                         <h2 style="font-size: ${currentSize + 4}px">Sign Up</h2>
+                        <div id="errorContainer" class="error-message"></div>
                         <form id="signupForm">
                             <label for="signupName" style="font-size: ${currentSize}px">Name</label>
                             <input type="text" id="signupName" placeholder="Enter your name" style="font-size: ${currentSize}px" required>
@@ -468,27 +470,53 @@ function login(event) {
     document.getElementById('modalContainer').innerHTML = "";
 }
 
-function signup() {
+function signup(event) {
+    event.preventDefault();
     const login = document.getElementById('signupName').value.trim();
     const pass = document.getElementById('signupPassword').value;
     const email = document.getElementById('signupEmail').value.trim();
+
+    // Очищаем предыдущие ошибки
+    const errorContainer = document.getElementById('errorContainer');
+    errorContainer.textContent = '';
+    errorContainer.classList.remove('show');
+
+    // Убираем класс ошибки с полей
+    document.getElementById('signupName').classList.remove('input-error');
+    document.getElementById('signupEmail').classList.remove('input-error');
+    document.getElementById('signupPassword').classList.remove('input-error');
+
     fetch('/signup', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ login: login, email: email, password: pass })
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to sign up');
-        }
-        return response.json(); // Assuming the server sends a JSON response
     })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    if (text.includes('Username already exists')) {
+                        document.getElementById('signupName').classList.add('input-error');
+                        throw new Error('This username is already taken. Please choose another one.');
+                    }
+                    if (text.includes('Email already exists')) {
+                        document.getElementById('signupEmail').classList.add('input-error');
+                        throw new Error('This email is already registered. Please use another email.');
+                    }
+                    throw new Error(text || 'Failed to sign up');
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Sign up successful:', data);
+            showLoginForm();
         })
         .catch(error => {
             console.error('Error:', error);
+            errorContainer.textContent = error.message;
+            errorContainer.classList.add('show');
         });
 }
 
@@ -590,9 +618,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    document.getElementById('runScript').addEventListener('click', addPost);
-    loadPosts();
+    if (document.getElementById('runScript')) {
+        document.getElementById('runScript').addEventListener('click', addPost);
+        loadPosts();
+    }
 
     // Apply saved text size
     const currentSize = getTextSize();

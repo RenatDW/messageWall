@@ -44,7 +44,11 @@
     <div class="content">
       <div class="author-profile">
         <div class="author-image">
-          <img src="author.png" alt="Author photo" class="profile-image" />
+          <img
+            src="images/author.png"
+            alt="Author photo"
+            class="profile-image"
+          />
         </div>
         <div class="author-info">
           <h1 class="author-title">About author</h1>
@@ -81,6 +85,49 @@
     </div>
 
     <script>
+      function setupAuthButtons() {
+        const currentSize = getTextSize(); // Get current font size
+        document.querySelector("header").innerHTML = `
+            <div class="header-content">
+                <div class="header-left">
+                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
+                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
+                </div>
+                <div class="header-right">
+                    <div class="auth-buttons">
+                        <button id="loginButton" style="font-size: ${currentSize}px">Login</button>
+                        <button id="signupButton" style="font-size: ${currentSize}px">Sign Up</button>
+                    </div>
+                    <div class="text-controls">
+                        <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
+                        <button id="increaseText" style="font-size: ${currentSize}px">A+</button>
+                    </div>
+                </div>
+            </div>`;
+
+        document
+          .getElementById("signupButton")
+          .addEventListener("click", showSignUpForm);
+        document
+          .getElementById("loginButton")
+          .addEventListener("click", showLoginForm);
+        document
+          .getElementById("decreaseText")
+          .addEventListener("click", () => {
+            const newSize = getTextSize() - 2;
+            if (newSize >= 12) {
+              setTextSize(newSize);
+            }
+          });
+        document
+          .getElementById("increaseText")
+          .addEventListener("click", () => {
+            const newSize = getTextSize() + 2;
+            if (newSize <= 24) {
+              setTextSize(newSize);
+            }
+          });
+      }
       document.addEventListener("DOMContentLoaded", () => {
         const token = document.cookie
           .split("; ")

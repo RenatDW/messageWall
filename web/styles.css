@@ -225,6 +225,22 @@ button:hover {
     }
 }
 
+/* Анимация для перемещения сообщения вверх при редактировании */
+@keyframes moveToTop {
+    0% {
+        transform: translateY(0);
+        z-index: 1;
+    }
+    20% {
+        transform: translateY(-10px);
+        z-index: 1000;
+    }
+    100% {
+        transform: translateY(0);
+        z-index: 1000;
+    }
+}
+
 /* Стили для сообщений */
 .message, .message-others {
     position: relative;
@@ -234,6 +250,7 @@ button:hover {
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    z-index: 1;
 }
 
 .message.deleting {
@@ -556,7 +573,10 @@ h3 {
 
 /* Стили для режима редактирования */
 .message.editing {
-    animation: editStart 0.3s ease forwards;
+    animation: moveToTop 0.5s ease forwards, editStart 0.3s ease forwards;
+    position: relative;
+    z-index: 1000; /* Высокий z-index для отображения поверх других сообщений */
+    box-shadow: 0 8px 24px rgba(0, 123, 255, 0.15);
 }
 
 .message.editing textarea {

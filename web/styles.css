@@ -92,36 +92,127 @@ button:hover {
     margin-top: 20px;
 }
 
-.message-board .message {
-    font-size: 16px;
-    color: #000;
-    padding: 15px;
-    margin: 10px 0;
-    background: #e7f1ff; /* Нежно-синий фон */
-    border: 1px solid #007BFF; /* Синий акцентный цвет */
-    border-radius: 6px;
-    word-wrap: break-word;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* Анимация для удаления сообщения */
+@keyframes deleteMessage {
+    0% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+        filter: blur(0);
+        background-color: white;
+        border-left: 0px solid #ff4444;
+    }
+    20% {
+        transform: scale(1.02) rotate(1deg);
+        background-color: #fff0f0;
+        border-left: 4px solid #ff4444;
+    }
+    40% {
+        transform: scale(0.95) rotate(-1deg);
+        background-color: #ffe0e0;
+        border-left: 4px solid #ff4444;
+    }
+    60% {
+        transform: scale(0.9) rotate(1deg) translateX(5%);
+        opacity: 0.8;
+        filter: blur(1px);
+        background-color: #ffd0d0;
+        border-left: 4px solid #ff4444;
+        box-shadow: 0 4px 8px rgba(255, 68, 68, 0.2);
+    }
+    80% {
+        transform: scale(0.8) rotate(-2deg) translateX(10%);
+        opacity: 0.4;
+        filter: blur(2px);
+        background-color: #ffc0c0;
+        border-left: 4px solid #ff4444;
+        box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+    }
+    100% {
+        transform: scale(0) rotate(5deg) translateX(20%);
+        opacity: 0;
+        filter: blur(4px);
+        background-color: #ffb0b0;
+        border-left: 4px solid #ff4444;
+        box-shadow: 0 4px 16px rgba(255, 68, 68, 0.4);
+    }
 }
 
-.message > button{
+/* Анимации для сообщений */
+@keyframes editStart {
+    0% {
+        transform: scale(1);
+        background-color: white;
+    }
+    30% {
+        transform: scale(1.02);
+        background-color: #f0f7ff;
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    }
+    100% {
+        transform: scale(1);
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 12px rgba(0, 123, 255, 0.15);
+    }
+}
+
+@keyframes editSave {
+    0% {
+        transform: scale(1);
+        background-color: #f8f9fa;
+    }
+    30% {
+        transform: scale(1.02);
+        background-color: #e3ffe3;
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+    }
+    100% {
+        transform: scale(1);
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Стили для сообщений */
+.message, .message-others {
+    position: relative;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    transform-origin: center left;
+    border-left: 0px solid transparent; /* Добавляем прозрачную границу для плавного перехода */
+    transition: all 0.3s ease;
+}
+
+.message.deleting {
+    animation: deleteMessage 0.8s ease-in-out forwards;
+    pointer-events: none;
+}
+
+.message {
+    font-size: 16px;
+    color: #000;
+    background: #e7f1ff; /* Нежно-синий фон */
+    border: 1px solid #007BFF; /* Синий акцентный цвет */
+    word-wrap: break-word;
+}
+
+.message > button {
     float: right;
-    margin-left: auto;
+    margin-left: 10px;
     margin-top: -5px;
     padding: 5px 10px;
     font-size: 14px;
-
 }
+
 .message-others {
     font-size: 16px;
     color: #000;
-    padding: 15px;
-    margin: 10px 0;
     background: #ffffff; /* Нежно-синий фон */
     border: 1px solid #868787; /* Синий акцентный цвет */
-    border-radius: 6px;
     word-wrap: break-word;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Modal background */
@@ -224,22 +315,20 @@ button:hover {
     transition: font - size 0.2s ease;
 }
 
-/* Добавим transition только для элементов, которые меняются при клике на кнопки */
-#decreaseText:active ~ *, #increaseText:active ~ * {
+* {
+    /* transition: font-size 0.2s ease; */ /* Удаляем это правило */
+}
+
+/* Добавим transition только для нужных элементов */
+.text-controls button:active ~ * {
     transition: font-size 0.2s ease;
 }
 
-/* Стили для контактной информации без transition */
-.contact-info, 
-.contact-title,
-.contact-list,
-.contact-item,
-.contact-link,
-.contact-text {
-    transition: none !important;
+/* Добавим transition при наведении и активации кнопок */
+button:hover, button:active {
+    transition: font-size 0.2s ease;
 }
 
-/* Остальные стили без изменений */
 button, input, label, strong, span, p, textarea {
     line-height: 1.5;
 }
@@ -255,33 +344,6 @@ button {
 
 input, textarea {
     padding: 0.5em;
-}
-
-/* Стили для контактной информации */
-.contact-info {
-    margin-top: 30px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.contact-list {
-    list-style: none;
-    padding: 0;
-}
-
-.contact-item {
-    margin-bottom: 10px;
-}
-
-.contact-link {
-    color: #007bff;
-    text-decoration: none;
-}
-
-.contact-link:hover {
-    text-decoration: underline;
 }
 
 .header-content {
@@ -359,6 +421,14 @@ input, textarea {
     flex: 1;
 }
 
+.contact-info {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
 .contact-info h2 {
     margin-bottom: 15px;
     color: #333;
@@ -406,4 +476,94 @@ h2, .contact-title {
 
 h3 {
     font-size: calc(var(--initial-font-size) + 4px);
+}
+
+/* Стили для режима редактирования */
+.message.editing {
+    animation: editStart 0.3s ease forwards;
+}
+
+.message.editing textarea {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    font-size: inherit;
+    transition: all 0.2s ease;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+}
+
+.message.editing textarea:focus {
+    outline: none;
+    border-color: #0056b3;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+.message.saving {
+    animation: editSave 0.5s ease forwards;
+}
+
+/* Стили для кнопок в режиме редактирования */
+.edit-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.edit-controls button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.save-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+}
+
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+.edit-controls button:active {
+    transform: translateY(1px);
+}
+
+/* Добавляем эффект при наведении на кнопку удаления */
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+    transition: all 0.2s ease;
+    margin-right: 10px; /* Добавляем отступ справа для кнопки удаления */
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.delete-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(220, 53, 69, 0.2);
+}
+
+.edit-btn {
+    margin-left: 0; /* Убираем левый отступ у кнопки редактирования */
 }

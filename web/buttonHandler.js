@@ -17,8 +17,8 @@ function handleInsert(res) {
                 <strong style="font-size: ${currentSize}px">${res.login}:</strong>
                 <span class="post-text" style="font-size: ${currentSize}px">${res.text}</span>
                 <span class="post-id" style="display:none">${res.id}</span>
-                <button class="edit-btn" style="font-size: ${currentSize}px">Edit</button>
-                <button class="delete-btn" style="font-size: ${currentSize}px">Delete</button>`;
+                <button class="delete-btn" style="font-size: ${currentSize}px">Delete</button>
+                <button class="edit-btn" style="font-size: ${currentSize}px">Edit</button>`;
             messageBlock.classList.add('message');
 
             // Event handlers for edit and delete
@@ -153,8 +153,8 @@ function loadPosts() {
                     <span class="post-text" style="font-size: ${currentSize}px">${post.Text}</span>
                     <span class="post-id" style="display:none">${post.ID}</span>
                     ${login === post.User.Name ? `
-                        <button class="edit-btn" style="font-size: ${currentSize}px">Edit</button>
                         <button class="delete-btn" style="font-size: ${currentSize}px">Delete</button>
+                        <button class="edit-btn" style="font-size: ${currentSize}px">Edit</button>
                     ` : ''}
                 `;
 

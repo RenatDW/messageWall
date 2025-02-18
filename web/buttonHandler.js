@@ -61,7 +61,7 @@ function handleDelete(res) {
     });
 }
 
-socket.onmessage = function(event) {
+socket.onmessage = function (event) {
     const res = JSON.parse(event.data);
     switch (res.action) {
         case "insert":
@@ -78,7 +78,7 @@ socket.onmessage = function(event) {
     }
 };
 
-function addPost(){
+function addPost() {
     const token = document.cookie.split('; ').find(row => row.startsWith('token='));
     if (token) {
         const jwt = token.split('=')[1];
@@ -92,8 +92,8 @@ function addPost(){
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }, 
-            body: JSON.stringify({token: jwt, text: messageText})
+            },
+            body: JSON.stringify({ token: jwt, text: messageText })
         })
             .then(response => {
                 if (response.ok) {
@@ -106,20 +106,20 @@ function addPost(){
                 const messageBlock = document.createElement('div');
                 messageBlock.classList.add('message');
                 messageBlock.innerHTML = `<strong>You:</strong> ${messageText}`;
-    
+
                 if (messageBoard) {
                     messageBoard.appendChild(messageBlock);
                     socket.send(messageText)
                 } else {
                     console.error('Message board not found.');
                 }
-    
+
                 messageInput.value = "";
             })
             .catch(error => {
                 alert('Error: ' + error.message);
             });
-        }
+    }
 }
 
 function loadPosts() {
@@ -128,14 +128,14 @@ function loadPosts() {
         .then(response => response.json())
         .then(data => {
             const login_cookie = document.cookie.split('; ').find(row => row.startsWith('login='));
-        const login = login_cookie ? login_cookie.split('=')[1] : '';
+            const login = login_cookie ? login_cookie.split('=')[1] : '';
 
-        data.forEach(post => {
-            const postDiv = document.createElement('div');
-            postDiv.classList.add(login === post.User.Name ? 'message' : 'message-others');
+            data.forEach(post => {
+                const postDiv = document.createElement('div');
+                postDiv.classList.add(login === post.User.Name ? 'message' : 'message-others');
 
-            // Add post content and buttons conditionally
-            postDiv.innerHTML = `
+                // Add post content and buttons conditionally
+                postDiv.innerHTML = `
                 <strong>${post.User.Name}:</strong> <span class="post-text">${post.Text}</span><span class="post-id" style="display:none">${post.ID}</span>
                 ${login === post.User.Name ? `
                     <button class="edit-btn">Edit</button>
@@ -143,38 +143,38 @@ function loadPosts() {
                 ` : ''}
             `;
 
-            messageBoard.appendChild(postDiv);
+                messageBoard.appendChild(postDiv);
 
-            if (login === post.User.Name) {
-                // Handle delete functionality
-                const deleteButton = postDiv.querySelector('.delete-btn');
-                deleteButton.addEventListener('click',  () => deleteBtn(postDiv, post.ID));
+                if (login === post.User.Name) {
+                    // Handle delete functionality
+                    const deleteButton = postDiv.querySelector('.delete-btn');
+                    deleteButton.addEventListener('click', () => deleteBtn(postDiv, post.ID));
 
-                // Handle edit functionality
-                const editButton = postDiv.querySelector('.edit-btn');
-                editButton.addEventListener('click', () => editBtn(postDiv, post.ID));
-            }
-        });
-    }).catch(error => console.error('Error fetching posts:', error));
+                    // Handle edit functionality
+                    const editButton = postDiv.querySelector('.edit-btn');
+                    editButton.addEventListener('click', () => editBtn(postDiv, post.ID));
+                }
+            });
+        }).catch(error => console.error('Error fetching posts:', error));
 }
-function deleteBtn(postDiv, ID){
+function deleteBtn(postDiv, ID) {
     const token = document.cookie.split('; ').find(row => row.startsWith('token='));
     if (token && token.split('=')[1] != "") {
         const jwt = token.split('=')[1];
         postDiv.remove();
         fetch('/delete-message', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }, 
-                body: JSON.stringify({token: jwt, id:ID})
-            })
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token: jwt, id: ID })
+        })
     }
     // Optional: Send request to the server to delete the post
 
 }
 
-function editBtn(postDiv, ID){
+function editBtn(postDiv, ID) {
     const postTextSpan = postDiv.querySelector('.post-text');
     const newText = prompt('Edit your message:', postTextSpan.textContent);
 
@@ -183,12 +183,12 @@ function editBtn(postDiv, ID){
         const token = document.cookie.split('; ').find(row => row.startsWith('token='));
         if (token && token.split('=')[1] != "") {
             const jwt = token.split('=')[1];
-            fetch('/edit-message',{
+            fetch('/edit-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                }, 
-                body: JSON.stringify({token: jwt, id:ID ,text: newText})
+                },
+                body: JSON.stringify({ token: jwt, id: ID, text: newText })
             })
         }
 
@@ -228,15 +228,15 @@ function showLoginForm() {
         modalContainer.innerHTML = ''; // Clear the modal
     });
 
-    document.getElementById('loginSubmit').addEventListener('click', (event) => login(event) );
+    document.getElementById('loginSubmit').addEventListener('click', (event) => login(event));
     // Add event listener to switch to sign-up form
     document.getElementById('switchToSignUp').addEventListener('click', showSignUpForm);
 }
 
 function showSignUpForm() {
     const formContainer = document.getElementById('formContainer');
-    if (formContainer){
-    formContainer.innerHTML = `
+    if (formContainer) {
+        formContainer.innerHTML = `
         <h2>Sign Up</h2>
         <form id="signupForm">
             <label for="signupName">Name</label>
@@ -251,7 +251,8 @@ function showSignUpForm() {
             Already have an account? 
             <span id="switchToLogin" class="switch-link">Login</span>
         </p>
-    `;}else{
+    `;
+    } else {
         const modalContainer = document.getElementById('modalContainer');
 
         modalContainer.innerHTML = `
@@ -280,21 +281,21 @@ function showSignUpForm() {
         document.getElementById('closeModal').addEventListener('click', () => {
             modalContainer.innerHTML = ''; // Clear the modal
         });
-    
+
     }
 
     // Add event listener to switch back to login form
-    document.getElementById('signupSubmit').addEventListener('click', signup );
+    document.getElementById('signupSubmit').addEventListener('click', signup);
     document.getElementById('switchToLogin').addEventListener('click', showLoginForm);
 }
 
-function login(event){
+function login(event) {
     event.preventDefault();
     const login = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPassword').value;
 
     console.log("Before fetch");
-        
+
     fetch('/login', {
         method: 'POST',
         headers: {
@@ -319,13 +320,13 @@ function login(event){
         })
         .catch(error => {
             console.error("Fetch error:", error);
-            alert("error: ",error);
-    });
+            alert("error: ", error);
+        });
     document.getElementById('modalContainer').innerHTML = "";
 
 }
 
-function signup(){
+function signup() {
     const login = document.getElementById('signupName').value.trim();
     const pass = document.getElementById('signupPassword').value;
     const email = document.getElementById('signupEmail').value.trim();
@@ -333,23 +334,23 @@ function signup(){
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }, 
-        body: JSON.stringify({login: login, email: email, password : pass})
+        },
+        body: JSON.stringify({ login: login, email: email, password: pass })
     }).then(response => {
         if (!response.ok) {
             throw new Error('Failed to sign up');
         }
         return response.json(); // Assuming the server sends a JSON response
     })
-    .then(data => {
-        console.log('Sign up successful:', data);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+        .then(data => {
+            console.log('Sign up successful:', data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
 
-function exit(){
+function exit() {
     document.cookie = 'email=;';
     document.cookie = 'login=;';
     document.cookie = 'token=;';
@@ -365,43 +366,43 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({token: jwt})
-            
+            body: JSON.stringify({ token: jwt })
+
         }).then(response => response.json())
-        .then(data =>{
-            document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
-            document.cookie = `login=${data.login}; path=/;`;
-            document.cookie = `email=${data.email}; path=/;`;   
-            document.querySelector('header').innerHTML = `${data.login} (${data.email}) 
+            .then(data => {
+                document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
+                document.cookie = `login=${data.login}; path=/;`;
+                document.cookie = `email=${data.email}; path=/;`;
+                document.querySelector('header').innerHTML = `${data.login} (${data.email}) 
             <div class="auth-buttons">
                 <button id="exitButton">Exit</button> 
             </div>`;
-            document.getElementById('exitButton').addEventListener('click' ,exit);
-        }).catch(() => {
-            setupAuthButtons();
-        });
+                document.getElementById('exitButton').addEventListener('click', exit);
+            }).catch(() => {
+                setupAuthButtons();
+            });
     } else {
         setupAuthButtons();
     }
 
-function setupAuthButtons() {
-    document.querySelector('header').innerHTML = `<div class="auth-buttons">
+    function setupAuthButtons() {
+        document.querySelector('header').innerHTML = `<div class="auth-buttons">
         <button id="loginButton">Login</button>
         <button id="signupButton">Sign Up</button>
     </div>`;
-    document.getElementById('signupButton').addEventListener('click', showSignUpForm);
-    document.getElementById('loginButton').addEventListener('click', showLoginForm);
-}
+        document.getElementById('signupButton').addEventListener('click', showSignUpForm);
+        document.getElementById('loginButton').addEventListener('click', showLoginForm);
+    }
 
-    document.getElementById('runScript').addEventListener('click' ,addPost);
-    
+    document.getElementById('runScript').addEventListener('click', addPost);
+
     loadPosts();
 });
 
 function getAllMessages() {
     const messageBoard = document.querySelector('.message-board');
     const messages = messageBoard.querySelectorAll('.message, .message-others');
-    
+
     const messageArray = Array.from(messages).map(messageDiv => {
         const textElement = messageDiv.querySelector('.post-text');
         const userElement = messageDiv.querySelector('strong');
@@ -410,6 +411,6 @@ function getAllMessages() {
             text: textElement.textContent
         };
     });
-    
+
     return messageArray;
 }

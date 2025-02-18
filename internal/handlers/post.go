@@ -123,3 +123,7 @@ func EditPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Post updated successfully!")
 
 }
+
+func AuthorHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./web/author.html")
+}

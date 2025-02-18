@@ -221,24 +221,25 @@ function editBtn(postDiv, ID) {
 
 function showLoginForm() {
     const modalContainer = document.getElementById('modalContainer');
+    const currentSize = getTextSize(); // Get current font size
 
     // Create modal window
     modalContainer.innerHTML = `
         <div class="modal">
             <div class="modal-content">
-                <span class="close-button" id="closeModal">&times;</span>
+                <span class="close-button" id="closeModal" style="font-size: ${currentSize}px">&times;</span>
                 <div id="formContainer">
-                    <h2>Login</h2>
+                    <h2 style="font-size: ${currentSize + 4}px">Login</h2>
                     <form id="loginForm">
-                        <label for="loginEmail">Email or login</label>
-                        <input type="text" id="loginEmail" placeholder="Enter your email or login" required>
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
-                        <button type="submit" id="loginSubmit">Login</button>
+                        <label for="loginEmail" style="font-size: ${currentSize}px">Email or login</label>
+                        <input type="text" id="loginEmail" placeholder="Enter your email or login" style="font-size: ${currentSize}px" required>
+                        <label for="loginPassword" style="font-size: ${currentSize}px">Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" style="font-size: ${currentSize}px" required>
+                        <button type="submit" id="loginSubmit" style="font-size: ${currentSize}px">Login</button>
                     </form>
-                    <p>
+                    <p style="font-size: ${currentSize}px">
                         Don't have an account? 
-                        <span id="switchToSignUp" class="switch-link">Sign Up</span>
+                        <span id="switchToSignUp" class="switch-link" style="font-size: ${currentSize}px">Sign Up</span>
                     </p>
                 </div>
             </div>
@@ -251,62 +252,61 @@ function showLoginForm() {
     });
 
     document.getElementById('loginSubmit').addEventListener('click', (event) => login(event));
-    // Add event listener to switch to sign-up form
     document.getElementById('switchToSignUp').addEventListener('click', showSignUpForm);
 }
 
 function showSignUpForm() {
     const formContainer = document.getElementById('formContainer');
+    const currentSize = getTextSize(); // Get current font size
+
     if (formContainer) {
         formContainer.innerHTML = `
-        <h2>Sign Up</h2>
-        <form id="signupForm">
-            <label for="signupName">Name</label>
-            <input type="text" id="signupName" placeholder="Enter your name" required>
-            <label for="signupEmail">Email</label>
-            <input type="email" id="signupEmail" placeholder="Enter your email" required>
-            <label for="signupPassword">Password</label>
-            <input type="password" id="signupPassword" placeholder="Enter your password" required>
-            <button type="submit" id="signupSubmit">Sign Up</button>
-        </form>
-        <p>
-            Already have an account? 
-            <span id="switchToLogin" class="switch-link">Login</span>
-        </p>
-    `;
+            <h2 style="font-size: ${currentSize + 4}px">Sign Up</h2>
+            <form id="signupForm">
+                <label for="signupName" style="font-size: ${currentSize}px">Name</label>
+                <input type="text" id="signupName" placeholder="Enter your name" style="font-size: ${currentSize}px" required>
+                <label for="signupEmail" style="font-size: ${currentSize}px">Email</label>
+                <input type="email" id="signupEmail" placeholder="Enter your email" style="font-size: ${currentSize}px" required>
+                <label for="signupPassword" style="font-size: ${currentSize}px">Password</label>
+                <input type="password" id="signupPassword" placeholder="Enter your password" style="font-size: ${currentSize}px" required>
+                <button type="submit" id="signupSubmit" style="font-size: ${currentSize}px">Sign Up</button>
+            </form>
+            <p style="font-size: ${currentSize}px">
+                Already have an account? 
+                <span id="switchToLogin" class="switch-link" style="font-size: ${currentSize}px">Login</span>
+            </p>
+        `;
     } else {
         const modalContainer = document.getElementById('modalContainer');
-
         modalContainer.innerHTML = `
-        <div class="modal">
-            <div class="modal-content">
-                <span class="close-button" id="closeModal">&times;</span>
-                <div id="formContainer">
-                    <h2>Sign Up</h2>
-                    <form id="signupForm">
-                        <label for="signupName">Name</label>
-                        <input type="text" id="signupName" placeholder="Enter your name" required>
-                        <label for="signupEmail">Email</label>
-                        <input type="email" id="signupEmail" placeholder="Enter your email" required>
-                        <label for="signupPassword">Password</label>
-                        <input type="password" id="signupPassword" placeholder="Enter your password" required>
-                        <button type="submit" id="signupSubmit">Sign Up</button>
-                    </form>
-                    <p>
-                        Already have an account? 
-                        <span id="switchToLogin" class="switch-link">Login</span>
-                    </p>
+            <div class="modal">
+                <div class="modal-content">
+                    <span class="close-button" id="closeModal" style="font-size: ${currentSize}px">&times;</span>
+                    <div id="formContainer">
+                        <h2 style="font-size: ${currentSize + 4}px">Sign Up</h2>
+                        <form id="signupForm">
+                            <label for="signupName" style="font-size: ${currentSize}px">Name</label>
+                            <input type="text" id="signupName" placeholder="Enter your name" style="font-size: ${currentSize}px" required>
+                            <label for="signupEmail" style="font-size: ${currentSize}px">Email</label>
+                            <input type="email" id="signupEmail" placeholder="Enter your email" style="font-size: ${currentSize}px" required>
+                            <label for="signupPassword" style="font-size: ${currentSize}px">Password</label>
+                            <input type="password" id="signupPassword" placeholder="Enter your password" style="font-size: ${currentSize}px" required>
+                            <button type="submit" id="signupSubmit" style="font-size: ${currentSize}px">Sign Up</button>
+                        </form>
+                        <p style="font-size: ${currentSize}px">
+                            Already have an account? 
+                            <span id="switchToLogin" class="switch-link" style="font-size: ${currentSize}px">Login</span>
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
         `;
         document.getElementById('closeModal').addEventListener('click', () => {
             modalContainer.innerHTML = ''; // Clear the modal
         });
-
     }
 
-    // Add event listener to switch back to login form
+    // Add event listeners
     document.getElementById('signupSubmit').addEventListener('click', signup);
     document.getElementById('switchToLogin').addEventListener('click', showLoginForm);
 }
@@ -334,35 +334,47 @@ function login(event) {
             document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
             document.cookie = `login=${data.login}; path=/;`;
             document.cookie = `email=${data.email}; path=/;`;
+            const currentSize = getTextSize(); // Get current font size
             document.querySelector('header').innerHTML = `
                 <div class="header-content">
                     <div class="header-left">
-                        <a href="/" class="home-link">Home</a>
-                        <span class="author-info">Created by Artem Krylov</span>
+                        <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
+                        <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
                     </div>
                     <div class="header-right">
-                        <span class="user-info">${data.login} (${data.email})</span>
+                        <span class="user-info" style="font-size: ${currentSize}px">${data.login} (${data.email})</span>
                         <div class="auth-buttons">
-                            <button id="exitButton">Exit</button> 
+                            <button id="exitButton" style="font-size: ${currentSize}px">Exit</button> 
                         </div>
                         <div class="text-controls">
-                            <button id="decreaseText">A-</button>
-                            <button id="increaseText">A+</button>
+                            <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
+                            <button id="increaseText" style="font-size: ${currentSize}px">A+</button>
                         </div>
                     </div>
                 </div>`;
 
-            document.getElementById('loginButton').style.display = 'none';
-            document.getElementById('signupButton').style.display = 'none';
             location.reload();
 
+            // Reattach event listeners
+            document.getElementById('exitButton').addEventListener('click', exit);
+            document.getElementById('decreaseText').addEventListener('click', () => {
+                const newSize = getTextSize() - 2;
+                if (newSize >= 12) {
+                    setTextSize(newSize);
+                }
+            });
+            document.getElementById('increaseText').addEventListener('click', () => {
+                const newSize = getTextSize() + 2;
+                if (newSize <= 24) {
+                    setTextSize(newSize);
+                }
+            });
         })
         .catch(error => {
             console.error("Fetch error:", error);
             alert("error: ", error);
         });
     document.getElementById('modalContainer').innerHTML = "";
-
 }
 
 function signup() {
@@ -412,20 +424,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
                 document.cookie = `login=${data.login}; path=/;`;
                 document.cookie = `email=${data.email}; path=/;`;
+                const currentSize = getTextSize(); // Get current font size
                 document.querySelector('header').innerHTML = `
                     <div class="header-content">
                         <div class="header-left">
-                            <a href="/" class="home-link">Home</a>
-                            <span class="author-info">About author</span>
+                            <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
+                            <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
                         </div>
                         <div class="header-right">
-                            <span class="user-info">${data.login} (${data.email})</span>
+                            <span class="user-info" style="font-size: ${currentSize}px">${data.login} (${data.email})</span>
                             <div class="auth-buttons">
-                                <button id="exitButton">Exit</button> 
+                                <button id="exitButton" style="font-size: ${currentSize}px">Exit</button> 
                             </div>
                             <div class="text-controls">
-                                <button id="decreaseText">A-</button>
-                                <button id="increaseText">A+</button>
+                                <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
+                                <button id="increaseText" style="font-size: ${currentSize}px">A+</button>
                             </div>
                         </div>
                     </div>`;
@@ -452,20 +465,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupAuthButtons() {
+        const currentSize = getTextSize(); // Get current font size
         document.querySelector('header').innerHTML = `
             <div class="header-content">
                 <div class="header-left">
-                    <a href="/" class="home-link">Home</a>
-                    <span class="author-info">Created by Artem Krylov</span>
+                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
+                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
                 </div>
                 <div class="header-right">
                     <div class="auth-buttons">
-                        <button id="loginButton">Login</button>
-                        <button id="signupButton">Sign Up</button>
+                        <button id="loginButton" style="font-size: ${currentSize}px">Login</button>
+                        <button id="signupButton" style="font-size: ${currentSize}px">Sign Up</button>
                     </div>
                     <div class="text-controls">
-                        <button id="decreaseText">A-</button>
-                        <button id="increaseText">A+</button>
+                        <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
+                        <button id="increaseText" style="font-size: ${currentSize}px">A+</button>
                     </div>
                 </div>
             </div>`;
@@ -524,15 +538,15 @@ function setTextSize(size) {
     const h5Size = baseSize + 2;
     const h6Size = baseSize + 1;
 
-    // Update regular text elements
-    const regularElements = document.querySelectorAll('.message, .message-others, button, input, label, strong, span, p, textarea');
-    regularElements.forEach(element => {
+    // Update all elements including header elements
+    const elements = document.querySelectorAll('.message, .message-others, button, input, label, strong, span, p, textarea, .home-link, .user-info, .auth-buttons button, .text-controls button, .author-text, .contact-item, .contact-link, .contact-text');
+    elements.forEach(element => {
         element.style.fontSize = `${baseSize}px`;
     });
 
     // Update headers with their specific sizes
-    document.querySelectorAll('h1').forEach(h1 => h1.style.fontSize = `${h1Size}px`);
-    document.querySelectorAll('h2').forEach(h2 => h2.style.fontSize = `${h2Size}px`);
+    document.querySelectorAll('h1, .author-title').forEach(h1 => h1.style.fontSize = `${h1Size}px`);
+    document.querySelectorAll('h2, .contact-title').forEach(h2 => h2.style.fontSize = `${h2Size}px`);
     document.querySelectorAll('h3').forEach(h3 => h3.style.fontSize = `${h3Size}px`);
     document.querySelectorAll('h4').forEach(h4 => h4.style.fontSize = `${h4Size}px`);
     document.querySelectorAll('h5').forEach(h5 => h5.style.fontSize = `${h5Size}px`);

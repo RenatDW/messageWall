@@ -17,8 +17,8 @@ function handleInsert(res) {
                 <strong style="font-size: ${currentSize}px">${res.login}:</strong>
                 <span class="post-text" style="font-size: ${currentSize}px">${res.text}</span>
                 <span class="post-id" style="display:none">${res.id}</span>
-                <button class="delete-btn" style="font-size: ${currentSize}px">Delete</button>
-                <button class="edit-btn" style="font-size: ${currentSize}px">Edit</button>`;
+                <button class="delete-btn" style="font-size: ${currentSize}px">Удалить</button>
+                <button class="edit-btn" style="font-size: ${currentSize}px">Изменить</button>`;
             messageBlock.classList.add('message');
 
             // Event handlers for edit and delete
@@ -91,35 +91,28 @@ socket.onmessage = function (event) {
 };
 
 function addPost() {
-    // Проверяем наличие токена
     const token = document.cookie.split('; ').find(row => row.startsWith('token='));
 
-    // Если токена нет или он пустой, показываем ошибку
     if (!token || token.split('=')[1] === '') {
         const errorContainer = document.createElement('div');
         errorContainer.className = 'error-message';
         errorContainer.textContent = 'Для отправки сообщений необходимо авторизоваться';
         errorContainer.style.marginBottom = '10px';
 
-        // Находим контейнер для сообщения об ошибке
         const container = document.querySelector('.container');
 
-        // Проверяем, нет ли уже сообщения об ошибке
         const existingError = container.querySelector('.error-message');
         if (existingError) {
             existingError.remove();
         }
 
-        // Вставляем сообщение об ошибке перед textarea
         const textarea = document.getElementById('messageInput');
         container.insertBefore(errorContainer, textarea.parentNode);
 
-        // Добавляем анимацию появления
         setTimeout(() => {
             errorContainer.classList.add('show');
         }, 10);
 
-        // Автоматически скрываем сообщение через 3 секунды
         setTimeout(() => {
             errorContainer.classList.remove('show');
             setTimeout(() => {
@@ -148,9 +141,7 @@ function addPost() {
     })
         .then(response => {
             if (response.ok) {
-                // Очищаем поле ввода после успешной отправки
                 messageInput.value = "";
-                // Очищаем сохраненный черновик
                 saveMessageDraft("");
                 return response.text();
             } else {
@@ -198,20 +189,18 @@ function loadPosts() {
                 const postDiv = document.createElement('div');
                 postDiv.classList.add(login === post.User.Name ? 'message' : 'message-others');
 
-                // Add post content and buttons conditionally
                 postDiv.innerHTML = `
                     <strong style="font-size: ${currentSize}px">${post.User.Name}:</strong> 
                     <span class="post-text" style="font-size: ${currentSize}px">${post.Text}</span>
                     <span class="post-id" style="display:none">${post.ID}</span>
                     ${login === post.User.Name ? `
-                        <button class="delete-btn" style="font-size: ${currentSize}px">Delete</button>
-                        <button class="edit-btn" style="font-size: ${currentSize}px">Edit</button>
+                        <button class="delete-btn" style="font-size: ${currentSize}px">Удалить</button>
+                        <button class="edit-btn" style="font-size: ${currentSize}px">Изменить</button>
                     ` : ''}
                 `;
 
                 messageBoard.appendChild(postDiv);
 
-                // Apply font size to all elements in the post
                 const allElements = postDiv.querySelectorAll('*');
                 allElements.forEach(element => {
                     if (element.tagName !== 'DIV') {
@@ -248,68 +237,54 @@ function deleteBtn(postDiv, ID) {
             })
         }, 1000);
     }
-    // Optional: Send request to the server to delete the post
-
 }
 
 function editBtn(messageBlock, id) {
     const textSpan = messageBlock.querySelector('.post-text');
     const currentText = textSpan.textContent;
 
-    // Находим контейнер сообщений
     const messageBoard = document.querySelector('.message-board');
 
-    // Добавляем класс для анимации начала редактирования
     messageBlock.classList.add('editing');
 
-    // Создаем поле ввода
     const input = document.createElement('textarea');
     input.value = currentText;
     input.style.fontSize = textSpan.style.fontSize;
 
-    // Создаем контейнер для кнопок
     const editControls = document.createElement('div');
     editControls.className = 'edit-controls';
 
-    // Создаем кнопки
     const saveButton = document.createElement('button');
-    saveButton.textContent = 'Save';
+    saveButton.textContent = 'Сохранить';
     saveButton.className = 'save-btn';
 
     const cancelButton = document.createElement('button');
-    cancelButton.textContent = 'Cancel';
+    cancelButton.textContent = 'Отмена';
     cancelButton.className = 'cancel-btn';
 
-    // Добавляем кнопки в контейнер
     editControls.appendChild(saveButton);
     editControls.appendChild(cancelButton);
 
-    // Заменяем текст на поле ввода и добавляем кнопки
     textSpan.replaceWith(input);
     messageBlock.appendChild(editControls);
 
-    // Устанавливаем фокус на поле ввода
     input.focus();
 
-    // Функция для отмены редактирования
     const cancelEdit = () => {
         input.replaceWith(textSpan);
         editControls.remove();
         messageBlock.classList.remove('editing');
     };
 
-    // Обработчик отмены
     cancelButton.addEventListener('click', cancelEdit);
 
-    // Обработчик сохранения
     saveButton.addEventListener('click', () => {
         const newText = input.value.trim();
         if (newText === '') {
-            alert('Message cannot be empty!');
+            alert('Сообщение не может быть пустым!');
             return;
         }
 
-        // Проверяем, изменился ли текст
         if (newText === currentText) {
             cancelEdit();
             return;
@@ -328,20 +303,15 @@ function editBtn(messageBlock, id) {
                 input.replaceWith(textSpan);
                 editControls.remove();
 
-                // Перемещаем сообщение вверх только если текст был изменен
                 messageBoard.prepend(messageBlock);
 
-                // Плавно прокручиваем к отредактированному сообщению
                 messageBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-                // Добавляем классы для анимации сохранения
                 messageBlock.classList.remove('editing');
                 messageBlock.classList.add('saving');
 
-                // Добавляем класс для анимации текста
                 messageBlock.classList.add('saved');
 
-                // Удаляем классы после завершения анимации
                 setTimeout(() => {
                     messageBlock.classList.remove('saving');
                     messageBlock.classList.remove('saved');
@@ -353,7 +323,6 @@ function editBtn(messageBlock, id) {
         }
     });
 
-    // Обработчик клавиши Escape для отмены
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             cancelEdit();
@@ -363,9 +332,8 @@ function editBtn(messageBlock, id) {
 
 function showLoginForm() {
     const modalContainer = document.getElementById('modalContainer');
-    const currentSize = getTextSize(); // Get current font size
+    const currentSize = getTextSize();
 
-    // Create modal window
     modalContainer.innerHTML = `
         <div class="modal">
             <div class="modal-content">
@@ -389,9 +357,8 @@ function showLoginForm() {
         </div>
     `;
 
-    // Add event listener for close button
     document.getElementById('closeModal').addEventListener('click', () => {
-        modalContainer.innerHTML = ''; // Clear the modal
+        modalContainer.innerHTML = '';
     });
 
     document.getElementById('loginSubmit').addEventListener('click', (event) => login(event));
@@ -400,7 +367,7 @@ function showLoginForm() {
 
 function showSignUpForm() {
     const formContainer = document.getElementById('formContainer');
-    const currentSize = getTextSize(); // Get current font size
+    const currentSize = getTextSize();
 
     if (formContainer) {
         formContainer.innerHTML = `
@@ -447,11 +414,10 @@ function showSignUpForm() {
             </div>
         `;
         document.getElementById('closeModal').addEventListener('click', () => {
-            modalContainer.innerHTML = ''; // Clear the modal
+            modalContainer.innerHTML = '';
         });
     }
 
-    // Add event listeners
     document.getElementById('signupSubmit').addEventListener('click', signup);
     document.getElementById('switchToLogin').addEventListener('click', showLoginForm);
 }
@@ -461,16 +427,13 @@ function login(event) {
     const login = document.getElementById('loginName').value.trim();
     const pass = document.getElementById('loginPassword').value;
 
-    // Очищаем предыдущие ошибки
     const errorContainer = document.getElementById('errorContainer');
     errorContainer.textContent = '';
     errorContainer.classList.remove('show');
 
-    // Убираем класс ошибки с полей
     document.getElementById('loginName').classList.remove('input-error');
     document.getElementById('loginPassword').classList.remove('input-error');
 
-    // Проверка на пустые поля
     if (!login) {
         document.getElementById('loginName').classList.add('input-error');
         errorContainer.textContent = 'Пожалуйста, введите имя пользователя';
@@ -496,7 +459,6 @@ function login(event) {
             if (!response.ok) {
                 return response.text().then(text => {
                     if (response.status === 401) {
-                        // Подсвечиваем оба поля при неверных данных
                         document.getElementById('loginName').classList.add('input-error');
                         document.getElementById('loginPassword').classList.add('input-error');
                         throw new Error('Неверное имя пользователя или пароль');
@@ -541,15 +503,13 @@ function login(event) {
             errorContainer.textContent = error.message;
             errorContainer.classList.add('show');
 
-            // Добавляем анимацию встряхивания для полей с ошибкой
             const errorFields = document.querySelectorAll('.input-error');
             errorFields.forEach(field => {
                 field.style.animation = 'none';
-                field.offsetHeight; // Trigger reflow
+                field.offsetHeight;
                 field.style.animation = 'shake 0.5s ease-in-out';
             });
 
-            // Автоматически скрываем сообщение об ошибке через 3 секунды
             setTimeout(() => {
                 errorContainer.classList.remove('show');
             }, 3000);
@@ -562,12 +522,10 @@ function signup(event) {
     const pass = document.getElementById('signupPassword').value;
     const email = document.getElementById('signupEmail').value.trim();
 
-    // Очищаем предыдущие ошибки
     const errorContainer = document.getElementById('errorContainer');
     errorContainer.textContent = '';
     errorContainer.classList.remove('show');
 
-    // Убираем класс ошибки с полей
     document.getElementById('signupName').classList.remove('input-error');
     document.getElementById('signupEmail').classList.remove('input-error');
     document.getElementById('signupPassword').classList.remove('input-error');
@@ -629,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
                 document.cookie = `login=${data.login}; path=/;`;
                 document.cookie = `email=${data.email}; path=/;`;
-                const currentSize = getTextSize(); // Get current font size
+                const currentSize = getTextSize();
                 document.querySelector('header').innerHTML = `
                     <div class="header-content">
                         <div class="header-left">
@@ -648,7 +606,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>`;
 
-                // Reattach event listeners
                 document.getElementById('exitButton').addEventListener('click', exit);
                 document.getElementById('decreaseText').addEventListener('click', () => {
                     const newSize = getTextSize() - 2;
@@ -670,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupAuthButtons() {
-        const currentSize = getTextSize(); // Get current font size
+        const currentSize = getTextSize();
         document.querySelector('header').innerHTML = `
             <div class="header-content">
                 <div class="header-left">
@@ -709,26 +666,22 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPosts();
     }
 
-    // Apply saved text size
     const currentSize = getTextSize();
     setTextSize(currentSize);
 
-    // Добавляем обработчики событий при загрузке DOM
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
-        // Загружаем сохраненный текст при загрузке страницы
         const savedText = getMessageDraft();
         if (savedText) {
             messageInput.value = savedText;
         }
 
-        // Сохраняем текст при вводе с небольшой задержкой
         let timeout;
         messageInput.addEventListener('input', () => {
             clearTimeout(timeout);
             timeout = setTimeout(() => {
                 saveMessageDraft(messageInput.value);
-            }, 500); // Задержка 500мс для оптимизации производительности
+            }, 500);
         });
         document.getElementById('messageInput').placeholder = 'Напишите сообщение';
     }
@@ -753,24 +706,20 @@ function getAllMessages() {
 function setTextSize(size) {
     document.cookie = `textSize=${size}; path=/;`;
 
-    // Base size for regular text
     const baseSize = size;
 
-    // Larger sizes for headers
-    const h1Size = baseSize + 8;  // Biggest header
+    const h1Size = baseSize + 8;
     const h2Size = baseSize + 6;
     const h3Size = baseSize + 4;
     const h4Size = baseSize + 3;
     const h5Size = baseSize + 2;
     const h6Size = baseSize + 1;
 
-    // Update all elements including header elements
     const elements = document.querySelectorAll('.message, .message-others, button, input, label, strong, span, p, textarea, .home-link, .user-info, .auth-buttons button, .text-controls button, .author-text, .contact-item, .contact-link, .contact-text');
     elements.forEach(element => {
         element.style.fontSize = `${baseSize}px`;
     });
 
-    // Update headers with their specific sizes
     document.querySelectorAll('h1, .author-title').forEach(h1 => h1.style.fontSize = `${h1Size}px`);
     document.querySelectorAll('h2, .contact-title').forEach(h2 => h2.style.fontSize = `${h2Size}px`);
     document.querySelectorAll('h3').forEach(h3 => h3.style.fontSize = `${h3Size}px`);
@@ -778,13 +727,11 @@ function setTextSize(size) {
     document.querySelectorAll('h5').forEach(h5 => h5.style.fontSize = `${h5Size}px`);
     document.querySelectorAll('h6').forEach(h6 => h6.style.fontSize = `${h6Size}px`);
 
-    // Update input and textarea placeholders
     const inputs = document.querySelectorAll('input, textarea');
     inputs.forEach(input => {
         input.style.fontSize = `${baseSize}px`;
     });
 
-    // Update modal text if it exists
     const modalElements = document.querySelectorAll('.modal *');
     modalElements.forEach(element => {
         if (element.tagName !== 'DIV') {
@@ -798,7 +745,6 @@ function setTextSize(size) {
         }
     });
 
-    // Specifically target messageInput textarea
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
         messageInput.style.fontSize = `${baseSize}px`;
@@ -807,59 +753,50 @@ function setTextSize(size) {
 
 function getTextSize() {
     const textSize = getCookie('textSize');
-    return textSize ? parseInt(textSize) : 16; // default size is 16px
+    return textSize ? parseInt(textSize) : 16;
 }
 
 function createParticles(element) {
     const rect = element.getBoundingClientRect();
-    const particlesCount = 50; // Количество частиц
+    const particlesCount = 50;
 
     for (let i = 0; i < particlesCount; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
 
-        // Случайное начальное положение внутри элемента
         const x = Math.random() * rect.width;
         const y = Math.random() * rect.height;
 
-        // Случайное направление движения
-        const tx = (Math.random() - 0.5) * 200; // Расстояние по X
-        const ty = (Math.random() - 0.5) * 200; // Расстояние по Y
-        const rotate = Math.random() * 360; // Вращение
+        const tx = (Math.random() - 0.5) * 200;
+        const ty = (Math.random() - 0.5) * 200;
+        const rotate = Math.random() * 360;
 
-        // Устанавливаем CSS переменные для анимации
         particle.style.setProperty('--tx', `${tx}px`);
         particle.style.setProperty('--ty', `${ty}px`);
         particle.style.setProperty('--r', `${rotate}deg`);
 
-        // Устанавливаем начальное положение
         particle.style.left = `${x}px`;
         particle.style.top = `${y}px`;
 
-        // Случайный цвет из оттенков красного
-        const red = Math.floor(Math.random() * 128 + 128); // от 128 до 255
+        const red = Math.floor(Math.random() * 128 + 128);
         particle.style.backgroundColor = `rgb(${red}, ${red * 0.3}, ${red * 0.3})`;
 
-        // Случайный размер
         const size = Math.random() * 4 + 2;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
 
         element.appendChild(particle);
 
-        // Удаляем частицу после завершения анимации
         setTimeout(() => {
             particle.remove();
         }, 1000);
     }
 }
 
-// Функция для сохранения текста в cookies
 function saveMessageDraft(text) {
-    document.cookie = `messageDraft=${encodeURIComponent(text)}; path=/; max-age=3600`; // Сохраняем на 1 час
+    document.cookie = `messageDraft=${encodeURIComponent(text)}; path=/; max-age=3600`;
 }
 
-// Функция для получения сохраненного текста из cookies
 function getMessageDraft() {
     const cookie = document.cookie.split('; ').find(row => row.startsWith('messageDraft='));
     return cookie ? decodeURIComponent(cookie.split('=')[1]) : '';

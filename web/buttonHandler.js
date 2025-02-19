@@ -91,47 +91,98 @@ socket.onmessage = function (event) {
 };
 
 function addPost() {
+    // Проверяем наличие токена
     const token = document.cookie.split('; ').find(row => row.startsWith('token='));
-    if (token) {
-        const jwt = token.split('=')[1];
-        const messageBoard = document.querySelector('.message-board');
-        const messageText = messageInput.value.trim();
-        if (messageText === "") {
-            alert("Message cannot be empty!");
-            return;
+
+    // Если токена нет или он пустой, показываем ошибку
+    if (!token || token.split('=')[1] === '') {
+        const errorContainer = document.createElement('div');
+        errorContainer.className = 'error-message';
+        errorContainer.textContent = 'Для отправки сообщений необходимо авторизоваться';
+        errorContainer.style.marginBottom = '10px';
+
+        // Находим контейнер для сообщения об ошибке
+        const container = document.querySelector('.container');
+
+        // Проверяем, нет ли уже сообщения об ошибке
+        const existingError = container.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
         }
-        fetch('/add-post', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ token: jwt, text: messageText })
-        })
-            .then(response => {
-                if (response.ok) {
-                    return response.text();
-                } else {
-                    throw new Error('Failed to execute script.');
-                }
-            });
-        // .then(result => {
-        //     const messageBlock = document.createElement('div');
-        //     messageBlock.classList.add('message');
-        //     messageBlock.innerHTML = `<strong>You:</strong> ${messageText}`;
 
-        //     if (messageBoard) {
-        //         messageBoard.appendChild(messageBlock);
-        //         socket.send(messageText)
-        //     } else {
-        //         console.error('Message board not found.');
-        //     }
+        // Вставляем сообщение об ошибке перед textarea
+        const textarea = document.getElementById('messageInput');
+        container.insertBefore(errorContainer, textarea.parentNode);
 
-        //     messageInput.value = "";
-        // })
-        // .catch(error => {
-        //     alert('Error: ' + error.message);
-        // });
+        // Добавляем анимацию появления
+        setTimeout(() => {
+            errorContainer.classList.add('show');
+        }, 10);
+
+        // Автоматически скрываем сообщение через 3 секунды
+        setTimeout(() => {
+            errorContainer.classList.remove('show');
+            setTimeout(() => {
+                errorContainer.remove();
+            }, 300);
+        }, 3000);
+
+        return;
     }
+
+    const messageInput = document.getElementById('messageInput');
+    const messageText = messageInput.value.trim();
+
+    if (messageText === "") {
+        alert("Сообщение не может быть пустым!");
+        return;
+    }
+
+    const jwt = token.split('=')[1];
+    fetch('/add-post', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token: jwt, text: messageText })
+    })
+        .then(response => {
+            if (response.ok) {
+                // Очищаем поле ввода после успешной отправки
+                messageInput.value = "";
+                // Очищаем сохраненный черновик
+                saveMessageDraft("");
+                return response.text();
+            } else {
+                throw new Error('Не удалось отправить сообщение');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            const errorContainer = document.createElement('div');
+            errorContainer.className = 'error-message';
+            errorContainer.textContent = 'Произошла ошибка при отправке сообщения';
+
+            const container = document.querySelector('.container');
+            const existingError = container.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+
+            const textarea = document.getElementById('messageInput');
+            container.insertBefore(errorContainer, textarea.parentNode);
+
+            setTimeout(() => {
+                errorContainer.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                errorContainer.classList.remove('show');
+                setTimeout(() => {
+                    errorContainer.remove();
+                }, 300);
+            }, 3000);
+        });
 }
 
 function loadPosts() {
@@ -320,17 +371,18 @@ function showLoginForm() {
             <div class="modal-content">
                 <span class="close-button" id="closeModal" style="font-size: ${currentSize}px">&times;</span>
                 <div id="formContainer">
-                    <h2 style="font-size: ${currentSize + 4}px">Login</h2>
+                    <h2 style="font-size: ${currentSize + 4}px">Вход</h2>
+                    <div id="errorContainer" class="error-message"></div>
                     <form id="loginForm">
-                        <label for="loginEmail" style="font-size: ${currentSize}px">Email or login</label>
-                        <input type="text" id="loginEmail" placeholder="Enter your email or login" style="font-size: ${currentSize}px" required>
-                        <label for="loginPassword" style="font-size: ${currentSize}px">Password</label>
-                        <input type="password" id="loginPassword" placeholder="Enter your password" style="font-size: ${currentSize}px" required>
-                        <button type="submit" id="loginSubmit" style="font-size: ${currentSize}px">Login</button>
+                        <label for="loginName" style="font-size: ${currentSize}px">Имя</label>
+                        <input type="text" id="loginName" placeholder="Введите ваше имя" style="font-size: ${currentSize}px" required>
+                        <label for="loginPassword" style="font-size: ${currentSize}px">Пароль</label>
+                        <input type="password" id="loginPassword" placeholder="Введите ваш пароль" style="font-size: ${currentSize}px" required>
+                        <button type="submit" id="loginSubmit" style="font-size: ${currentSize}px">Войти</button>
                     </form>
                     <p style="font-size: ${currentSize}px">
-                        Don't have an account? 
-                        <span id="switchToSignUp" class="switch-link" style="font-size: ${currentSize}px">Sign Up</span>
+                        Нет аккаунта? 
+                        <span id="switchToSignup" class="switch-link" style="font-size: ${currentSize}px">Зарегистрироваться</span>
                     </p>
                 </div>
             </div>
@@ -343,7 +395,7 @@ function showLoginForm() {
     });
 
     document.getElementById('loginSubmit').addEventListener('click', (event) => login(event));
-    document.getElementById('switchToSignUp').addEventListener('click', showSignUpForm);
+    document.getElementById('switchToSignup').addEventListener('click', showSignUpForm);
 }
 
 function showSignUpForm() {
@@ -352,20 +404,20 @@ function showSignUpForm() {
 
     if (formContainer) {
         formContainer.innerHTML = `
-            <h2 style="font-size: ${currentSize + 4}px">Sign Up</h2>
+            <h2 style="font-size: ${currentSize + 4}px">Регистрация</h2>
             <div id="errorContainer" class="error-message"></div>
             <form id="signupForm">
-                <label for="signupName" style="font-size: ${currentSize}px">Name</label>
-                <input type="text" id="signupName" placeholder="Enter your name" style="font-size: ${currentSize}px" required>
-                <label for="signupEmail" style="font-size: ${currentSize}px">Email</label>
-                <input type="email" id="signupEmail" placeholder="Enter your email" style="font-size: ${currentSize}px" required>
-                <label for="signupPassword" style="font-size: ${currentSize}px">Password</label>
-                <input type="password" id="signupPassword" placeholder="Enter your password" style="font-size: ${currentSize}px" required>
-                <button type="submit" id="signupSubmit" style="font-size: ${currentSize}px">Sign Up</button>
+                <label for="signupName" style="font-size: ${currentSize}px">Имя</label>
+                <input type="text" id="signupName" placeholder="Введите ваше имя" style="font-size: ${currentSize}px" required>
+                <label for="signupEmail" style="font-size: ${currentSize}px">Почта</label>
+                <input type="email" id="signupEmail" placeholder="Введите вашу почту" style="font-size: ${currentSize}px" required>
+                <label for="signupPassword" style="font-size: ${currentSize}px">Пароль</label>
+                <input type="password" id="signupPassword" placeholder="Введите ваш пароль" style="font-size: ${currentSize}px" required>
+                <button type="submit" id="signupSubmit" style="font-size: ${currentSize}px">Зарегистрироваться</button>
             </form>
             <p style="font-size: ${currentSize}px">
-                Already have an account? 
-                <span id="switchToLogin" class="switch-link" style="font-size: ${currentSize}px">Login</span>
+                Уже есть аккаунт? 
+                <span id="switchToLogin" class="switch-link" style="font-size: ${currentSize}px">Войти</span>
             </p>
         `;
     } else {
@@ -375,20 +427,20 @@ function showSignUpForm() {
                 <div class="modal-content">
                     <span class="close-button" id="closeModal" style="font-size: ${currentSize}px">&times;</span>
                     <div id="formContainer">
-                        <h2 style="font-size: ${currentSize + 4}px">Sign Up</h2>
+                        <h2 style="font-size: ${currentSize + 4}px">Регистрация</h2>
                         <div id="errorContainer" class="error-message"></div>
                         <form id="signupForm">
-                            <label for="signupName" style="font-size: ${currentSize}px">Name</label>
-                            <input type="text" id="signupName" placeholder="Enter your name" style="font-size: ${currentSize}px" required>
-                            <label for="signupEmail" style="font-size: ${currentSize}px">Email</label>
-                            <input type="email" id="signupEmail" placeholder="Enter your email" style="font-size: ${currentSize}px" required>
-                            <label for="signupPassword" style="font-size: ${currentSize}px">Password</label>
-                            <input type="password" id="signupPassword" placeholder="Enter your password" style="font-size: ${currentSize}px" required>
-                            <button type="submit" id="signupSubmit" style="font-size: ${currentSize}px">Sign Up</button>
+                            <label for="signupName" style="font-size: ${currentSize}px">Имя</label>
+                            <input type="text" id="signupName" placeholder="Введите ваше имя" style="font-size: ${currentSize}px" required>
+                            <label for="signupEmail" style="font-size: ${currentSize}px">Почта</label>
+                            <input type="email" id="signupEmail" placeholder="Введите вашу почту" style="font-size: ${currentSize}px" required>
+                            <label for="signupPassword" style="font-size: ${currentSize}px">Пароль</label>
+                            <input type="password" id="signupPassword" placeholder="Введите ваш пароль" style="font-size: ${currentSize}px" required>
+                            <button type="submit" id="signupSubmit" style="font-size: ${currentSize}px">Зарегистрироваться</button>
                         </form>
                         <p style="font-size: ${currentSize}px">
-                            Already have an account? 
-                            <span id="switchToLogin" class="switch-link" style="font-size: ${currentSize}px">Login</span>
+                            Уже есть аккаунт? 
+                            <span id="switchToLogin" class="switch-link" style="font-size: ${currentSize}px">Войти</span>
                         </p>
                     </div>
                 </div>
@@ -406,10 +458,32 @@ function showSignUpForm() {
 
 function login(event) {
     event.preventDefault();
-    const login = document.getElementById('loginEmail').value.trim();
+    const login = document.getElementById('loginName').value.trim();
     const pass = document.getElementById('loginPassword').value;
 
-    console.log("Before fetch");
+    // Очищаем предыдущие ошибки
+    const errorContainer = document.getElementById('errorContainer');
+    errorContainer.textContent = '';
+    errorContainer.classList.remove('show');
+
+    // Убираем класс ошибки с полей
+    document.getElementById('loginName').classList.remove('input-error');
+    document.getElementById('loginPassword').classList.remove('input-error');
+
+    // Проверка на пустые поля
+    if (!login) {
+        document.getElementById('loginName').classList.add('input-error');
+        errorContainer.textContent = 'Пожалуйста, введите имя пользователя';
+        errorContainer.classList.add('show');
+        return;
+    }
+
+    if (!pass) {
+        document.getElementById('loginPassword').classList.add('input-error');
+        errorContainer.textContent = 'Пожалуйста, введите пароль';
+        errorContainer.classList.add('show');
+        return;
+    }
 
     fetch('/login', {
         method: 'POST',
@@ -419,55 +493,67 @@ function login(event) {
         body: JSON.stringify({ login: login, password: pass })
     })
         .then(response => {
-            console.log("Response status:", response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    if (response.status === 401) {
+                        // Подсвечиваем оба поля при неверных данных
+                        document.getElementById('loginName').classList.add('input-error');
+                        document.getElementById('loginPassword').classList.add('input-error');
+                        throw new Error('Неверное имя пользователя или пароль');
+                    }
+                    if (response.status === 404) {
+                        document.getElementById('loginName').classList.add('input-error');
+                        throw new Error('Пользователь не найден');
+                    }
+                    throw new Error('Произошла ошибка при входе');
+                });
+            }
             return response.json();
         })
         .then(data => {
-            console.log("Response body:", data);
             document.cookie = "token=" + encodeURIComponent(data.token) + "; path=/; secure; SameSite=Strict";
             document.cookie = `login=${data.login}; path=/;`;
             document.cookie = `email=${data.email}; path=/;`;
-            const currentSize = getTextSize(); // Get current font size
+
+            const currentSize = getTextSize();
             document.querySelector('header').innerHTML = `
-                <div class="header-content">
-                    <div class="header-left">
-                        <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
-                        <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
+            <div class="header-content">
+                <div class="header-left">
+                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Главная</a>
+                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">Об авторе</a>
+                </div>
+                <div class="header-right">
+                    <span class="user-info" style="font-size: ${currentSize}px">${data.login} (${data.email})</span>
+                    <div class="auth-buttons">
+                        <button id="exitButton" style="font-size: ${currentSize}px">Выход</button>
                     </div>
-                    <div class="header-right">
-                        <span class="user-info" style="font-size: ${currentSize}px">${data.login} (${data.email})</span>
-                        <div class="auth-buttons">
-                            <button id="exitButton" style="font-size: ${currentSize}px">Exit</button> 
-                        </div>
-                        <div class="text-controls">
-                            <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
-                            <button id="increaseText" style="font-size: ${currentSize}px">A+</button>
-                        </div>
+                    <div class="text-controls">
+                        <button id="decreaseText" style="font-size: ${currentSize}px">А-</button>
+                        <button id="increaseText" style="font-size: ${currentSize}px">А+</button>
                     </div>
-                </div>`;
+                </div>
+            </div>`;
 
             location.reload();
-
-            // Reattach event listeners
-            document.getElementById('exitButton').addEventListener('click', exit);
-            document.getElementById('decreaseText').addEventListener('click', () => {
-                const newSize = getTextSize() - 2;
-                if (newSize >= 12) {
-                    setTextSize(newSize);
-                }
-            });
-            document.getElementById('increaseText').addEventListener('click', () => {
-                const newSize = getTextSize() + 2;
-                if (newSize <= 24) {
-                    setTextSize(newSize);
-                }
-            });
         })
         .catch(error => {
-            console.error("Fetch error:", error);
-            alert("error: ", error);
+            console.error('Ошибка:', error);
+            errorContainer.textContent = error.message;
+            errorContainer.classList.add('show');
+
+            // Добавляем анимацию встряхивания для полей с ошибкой
+            const errorFields = document.querySelectorAll('.input-error');
+            errorFields.forEach(field => {
+                field.style.animation = 'none';
+                field.offsetHeight; // Trigger reflow
+                field.style.animation = 'shake 0.5s ease-in-out';
+            });
+
+            // Автоматически скрываем сообщение об ошибке через 3 секунды
+            setTimeout(() => {
+                errorContainer.classList.remove('show');
+            }, 3000);
         });
-    document.getElementById('modalContainer').innerHTML = "";
 }
 
 function signup(event) {
@@ -498,13 +584,13 @@ function signup(event) {
                 return response.text().then(text => {
                     if (text.includes('Username already exists')) {
                         document.getElementById('signupName').classList.add('input-error');
-                        throw new Error('This username is already taken. Please choose another one.');
+                        throw new Error('Это имя пользователя уже занято. Пожалуйста, выберите другое.');
                     }
                     if (text.includes('Email already exists')) {
                         document.getElementById('signupEmail').classList.add('input-error');
-                        throw new Error('This email is already registered. Please use another email.');
+                        throw new Error('Эта почта уже зарегистрирована. Пожалуйста, используйте другую почту.');
                     }
-                    throw new Error(text || 'Failed to sign up');
+                    throw new Error(text || 'Не удалось зарегистрироваться');
                 });
             }
             return response.json();
@@ -547,17 +633,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelector('header').innerHTML = `
                     <div class="header-content">
                         <div class="header-left">
-                            <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
-                            <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
+                            <a href="/" class="home-link" style="font-size: ${currentSize}px">Главная</a>
+                            <a href="/author" class="home-link" style="font-size: ${currentSize}px">Об авторе</a>
                         </div>
                         <div class="header-right">
                             <span class="user-info" style="font-size: ${currentSize}px">${data.login} (${data.email})</span>
                             <div class="auth-buttons">
-                                <button id="exitButton" style="font-size: ${currentSize}px">Exit</button> 
+                                <button id="exitButton" style="font-size: ${currentSize}px">Выход</button> 
                             </div>
                             <div class="text-controls">
-                                <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
-                                <button id="increaseText" style="font-size: ${currentSize}px">A+</button>
+                                <button id="decreaseText" style="font-size: ${currentSize}px">А-</button>
+                                <button id="increaseText" style="font-size: ${currentSize}px">А+</button>
                             </div>
                         </div>
                     </div>`;
@@ -588,13 +674,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('header').innerHTML = `
             <div class="header-content">
                 <div class="header-left">
-                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
-                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
+                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Главная</a>
+                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">Об авторе</a>
                 </div>
                 <div class="header-right">
                     <div class="auth-buttons">
-                        <button id="loginButton" style="font-size: ${currentSize}px">Login</button>
-                        <button id="signupButton" style="font-size: ${currentSize}px">Sign Up</button>
+                        <button id="loginButton" style="font-size: ${currentSize}px">Вход</button>
+                        <button id="signupButton" style="font-size: ${currentSize}px">Регистрация</button>
                     </div>
                     <div class="text-controls">
                         <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
@@ -644,6 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveMessageDraft(messageInput.value);
             }, 500); // Задержка 500мс для оптимизации производительности
         });
+        document.getElementById('messageInput').placeholder = 'Напишите сообщение';
     }
 });
 

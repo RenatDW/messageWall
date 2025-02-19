@@ -23,7 +23,6 @@ header {
 /* Align login and sign up buttons */
 header .auth-buttons {
     display: flex;
-    gap: 10px; /* Space between buttons */
 }
 
 header .auth-buttons button {
@@ -482,7 +481,6 @@ input, textarea {
 
 .auth-buttons {
     display: flex;
-    gap: 10px;
 }
 
 .text-controls {

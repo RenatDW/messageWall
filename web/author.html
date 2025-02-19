@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>About Author</title>
+    <title>Об авторе</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="buttonHandler.js"></script>
     <script>
@@ -27,8 +27,8 @@
     <header>
       <div class="header-content">
         <div class="header-left">
-          <a href="/" class="home-link">Home</a>
-          <a href="/author" class="home-link">About author</a>
+          <a href="/" class="home-link">Главная</a>
+          <a href="/author" class="home-link">Об авторе</a>
         </div>
         <div class="header-right">
           <div class="text-controls">
@@ -46,31 +46,32 @@
         <div class="author-image">
           <img
             src="images/author.png"
-            alt="Author photo"
+            alt="Фото автора"
             class="profile-image"
           />
         </div>
         <div class="author-info">
-          <h1 class="author-title">About author</h1>
+          <h1 class="author-title">Об авторе</h1>
           <p class="author-text">
             В этом году поступил в Вгу на первый курс исита на факультет
             компьютерных наук, от учёбы здесь хочу получить, какие то
             практические навыки и знакомства, которые помогут в дальнейшем при
-            устройстве на работу Хотелось бы в дальнейшем заниматься разработкой
-            в области нейронных сетей и машинного зрения, но мои познания в
-            математики врятли позволят это осуществить на данный момент
+            устройстве на работу. Хотелось бы в дальнейшем заниматься
+            разработкой в области нейронных сетей и машинного зрения, но мои
+            познания в математике врятли позволят это осуществить на данный
+            момент.
           </p>
           <div class="contact-info">
-            <h2 class="contact-title">Contact Information</h2>
+            <h2 class="contact-title">Контактная информация</h2>
             <ul class="contact-list">
               <li class="contact-item">
-                📱 Phone:
+                📱 Телефон:
                 <a href="tel:+89615349931" class="contact-link"
                   >+8 (961) 534-9931</a
                 >
               </li>
               <li class="contact-item">
-                📧 Email:
+                📧 Почта:
                 <a href="mailto:nikitosush@gmail.com" class="contact-link"
                   >nikitosush@gmail.com</a
                 >
@@ -90,13 +91,13 @@
         document.querySelector("header").innerHTML = `
             <div class="header-content">
                 <div class="header-left">
-                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
-                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
+                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Главная</a>
+                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">Об авторе</a>
                 </div>
                 <div class="header-right">
                     <div class="auth-buttons">
-                        <button id="loginButton" style="font-size: ${currentSize}px">Login</button>
-                        <button id="signupButton" style="font-size: ${currentSize}px">Sign Up</button>
+                        <button id="loginButton" style="font-size: ${currentSize}px">Вход</button>
+                        <button id="signupButton" style="font-size: ${currentSize}px">Регистрация</button>
                     </div>
                     <div class="text-controls">
                         <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
@@ -159,17 +160,17 @@
               const headerHTML = `
                 <div class="header-content">
                   <div class="header-left">
-                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Home</a>
-                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">About author</a>
+                    <a href="/" class="home-link" style="font-size: ${currentSize}px">Главная</a>
+                    <a href="/author" class="home-link" style="font-size: ${currentSize}px">Об авторе</a>
                   </div>
                   <div class="header-right">
                     <span class="user-info" style="font-size: ${currentSize}px">${data.login} (${data.email})</span>
                     <div class="auth-buttons">
-                      <button id="exitButton" style="font-size: ${currentSize}px">Exit</button>
+                      <button id="exitButton" style="font-size: ${currentSize}px">Выход</button>
                     </div>
                     <div class="text-controls">
-                      <button id="decreaseText" style="font-size: ${currentSize}px">A-</button>
-                      <button id="increaseText" style="font-size: ${currentSize}px">A+</button>
+                      <button id="decreaseText" style="font-size: ${currentSize}px">А-</button>
+                        <button id="increaseText" style="font-size: ${currentSize}px">А+</button>
                     </div>
                   </div>
                 </div>`;

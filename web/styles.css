@@ -242,14 +242,12 @@ button:hover {
 
 /* Стили для сообщений */
 .message, .message-others {
-    position: relative;
     padding: 15px;
     margin: 10px 0;
     border-radius: 8px;
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-    z-index: 1;
 }
 
 .message.deleting {
@@ -283,12 +281,72 @@ button:hover {
     }
 }
 
+.message-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.text-container {
+    flex: 1;
+    min-width: 0;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.delete-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 80px;
+    background-color: #dc3545;
+    color: white;
+    margin-bottom: 0px;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+.delete-btn:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+.edit-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 80px;
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+
+.post-text {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: block;
+    margin: 5px 0;
+}
+
 .message {
     font-size: 16px;
     color: #000;
     background: #e7f1ff; /* Нежно-синий фон */
     border: 1px solid #007BFF; /* Синий акцентный цвет */
-    word-wrap: break-word;
 }
 
 .message > button{
@@ -304,7 +362,6 @@ button:hover {
     color: #000;
     background: #ffffff; /* Нежно-синий фон */
     border: 1px solid #868787; /* Синий акцентный цвет */
-    word-wrap: break-word;
 }
 
 /* Modal background */
@@ -674,68 +731,6 @@ h3 {
 
 .message.saved .post-text {
     animation: textSaved 1s ease;
-}
-
-/* Стили для кнопки удаления */
-.delete-btn {
-    background-color: #dc3545;
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.delete-btn:hover {
-    animation: deleteButtonHover 0.4s ease forwards;
-    background-color: #c82333;
-}
-
-.delete-btn:active {
-    animation: none;
-    transform: translateY(1px);
-    box-shadow: 0 1px 2px rgba(220, 53, 69, 0.2);
-}
-
-/* Анимация для кнопки редактирования при наведении */
-@keyframes editButtonHover {
-    0% {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
-    }
-    50% {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
-    }
-    100% {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.25);
-    }
-}
-
-/* Стили для кнопки редактирования */
-.edit-btn {
-    background-color: #007bff;
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.edit-btn:hover {
-    animation: editButtonHover 0.4s ease forwards;
-    background-color: #0056b3;
-}
-
-.edit-btn:active {
-    animation: none;
-    transform: translateY(1px);
-    box-shadow: 0 1px 2px rgba(0, 123, 255, 0.2);
 }
 
 /* Стили для сообщений об ошибках */

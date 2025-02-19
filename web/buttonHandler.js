@@ -14,11 +14,17 @@ function handleInsert(res) {
 
         if (login && String(login) === String(res.login)) {
             messageBlock.innerHTML = `
-                <strong style="font-size: ${currentSize}px">${res.login}:</strong>
-                <span class="post-text" style="font-size: ${currentSize}px">${res.text}</span>
-                <span class="post-id" style="display:none">${res.id}</span>
-                <button class="delete-btn" style="font-size: ${currentSize}px">Удалить</button>
-                <button class="edit-btn" style="font-size: ${currentSize}px">Изменить</button>`;
+                <div class="message-content">
+                    <div class="text-container">
+                        <strong style="font-size: ${currentSize}px">${res.login}:</strong>
+                        <span class="post-text" style="font-size: ${currentSize}px">${res.text}</span>
+                        <span class="post-id" style="display:none">${res.id}</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="edit-btn" style="font-size: ${currentSize}px">Изменить</button>
+                        <button class="delete-btn" style="font-size: ${currentSize}px">Удалить</button>
+                    </div>
+                </div>`;
             messageBlock.classList.add('message');
 
             // Event handlers for edit and delete
@@ -189,24 +195,25 @@ function loadPosts() {
                 const postDiv = document.createElement('div');
                 postDiv.classList.add(login === post.User.Name ? 'message' : 'message-others');
 
+                const buttonContainer = login === post.User.Name ? `
+                    <div class="button-container">
+                    <button class="edit-btn" style="font-size: ${currentSize}px">Изменить</button>
+                    <button class="delete-btn" style="font-size: ${currentSize}px">Удалить</button>
+                    </div>
+                ` : '';
+
                 postDiv.innerHTML = `
-                    <strong style="font-size: ${currentSize}px">${post.User.Name}:</strong> 
-                    <span class="post-text" style="font-size: ${currentSize}px">${post.Text}</span>
-                    <span class="post-id" style="display:none">${post.ID}</span>
-                    ${login === post.User.Name ? `
-                        <button class="delete-btn" style="font-size: ${currentSize}px">Удалить</button>
-                        <button class="edit-btn" style="font-size: ${currentSize}px">Изменить</button>
-                    ` : ''}
+                    <div class="message-content">
+                        <div class="text-container">
+                            <strong style="font-size: ${currentSize}px">${post.User.Name}:</strong> 
+                            <span class="post-text" style="font-size: ${currentSize}px">${post.Text}</span>
+                            <span class="post-id" style="display:none">${post.ID}</span>
+                        </div>
+                        ${buttonContainer}
+                    </div>
                 `;
 
                 messageBoard.appendChild(postDiv);
-
-                const allElements = postDiv.querySelectorAll('*');
-                allElements.forEach(element => {
-                    if (element.tagName !== 'DIV') {
-                        element.style.fontSize = `${currentSize}px`;
-                    }
-                });
 
                 if (login === post.User.Name) {
                     const deleteButton = postDiv.querySelector('.delete-btn');
